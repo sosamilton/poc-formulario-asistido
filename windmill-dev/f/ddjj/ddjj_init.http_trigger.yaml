@@ -1,0 +1,7 @@
+script_path: f/ddjj/init_ddjj
+is_flow: true
+route_path: ddjj/init
+http_method: post
+authentication_method: none
+request_type: sync
+require_body: true

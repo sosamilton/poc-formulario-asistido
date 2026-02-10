@@ -1,0 +1,14 @@
+summary: Fetch padron data from Mockoon API
+description: Retrieves taxpayer information including activity code and tax regime
+kind: script
+language: bun
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  required:
+    - cuit
+  properties:
+    cuit:
+      type: string
+      description: CUIT number to lookup
+      default: ""

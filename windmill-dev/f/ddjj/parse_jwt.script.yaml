@@ -1,0 +1,14 @@
+summary: Parse JWT token and extract CUIT
+description: Decodes JWT token and extracts the CUIT from the identifier claim
+kind: script
+language: deno
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  required:
+    - token
+  properties:
+    token:
+      type: string
+      description: JWT token from webhook request
+      default: ""

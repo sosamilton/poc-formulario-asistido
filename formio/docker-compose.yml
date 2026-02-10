@@ -1,0 +1,29 @@
+services:
+  mongo:
+    image: mongo
+    restart: always
+    volumes:
+      - mdb-data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD
+  formio:
+    # platform: linux/amd64
+    # build:
+    #   context: ./
+    #   dockerfile: Dockerfile
+    image: formio/formio:4.6.0
+    restart: always
+    links:
+      - mongo
+    ports:
+      - '3010:3001'
+    environment:
+      DEBUG: formio:*
+      NODE_CONFIG: '{"mongo": "mongodb://mongo:27017/formio"}'
+      ROOT_EMAIL: admin@example.com
+      ROOT_PASSWORD: CHANGEME
+    stdin_open: true # -i
+    tty: true # -t
+volumes:
+  mdb-data:

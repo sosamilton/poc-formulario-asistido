@@ -1,0 +1,19 @@
+summary: Calculate minimum amount for DDJJ
+description: Applies business rules to determine minimum declaration amount based on regime and alicuota
+kind: script
+language: bun
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  required:
+    - regimen
+    - alicuota
+  properties:
+    regimen:
+      type: string
+      description: Tax regime (CM, LOCAL, ESPECIAL)
+      default: ""
+    alicuota:
+      type: number
+      description: Tax rate percentage
+      default: 0

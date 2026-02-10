@@ -1,0 +1,37 @@
+version: "3.5"
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: corteza
+      POSTGRES_USER: corteza
+      POSTGRES_DB: corteza
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U corteza"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    restart: always
+
+  server:
+    image: cortezaproject/corteza:${VERSION}
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:18080:80"
+    depends_on:
+      - db
+    networks:
+      - default
+      - omnicanalidad-smtp
+    restart: always
+
+volumes:
+  db-data:
+
+networks:
+  omnicanalidad-smtp:
+    external: true

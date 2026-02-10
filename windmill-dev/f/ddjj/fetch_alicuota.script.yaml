@@ -1,0 +1,14 @@
+summary: Fetch alicuota by activity code
+description: Retrieves tax rate (alicuota) for a given activity code from Mockoon API
+kind: script
+language: bun
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  required:
+    - codigoActividad
+  properties:
+    codigoActividad:
+      type: string
+      description: Activity code to lookup
+      default: ""

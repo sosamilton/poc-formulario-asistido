@@ -1,0 +1,32 @@
+summary: Create Form.io submission with precargado data
+description: Creates a draft submission in Form.io with all collected data
+kind: script
+language: bun
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  required:
+    - data
+  properties:
+    data:
+      type: object
+      description: Complete submission data
+      properties:
+        cuit:
+          type: string
+        razonSocial:
+          type: string
+        actividad:
+          type: string
+        regimen:
+          type: string
+        alicuota:
+          type: number
+        montoAnterior:
+          type: number
+        periodosAdeudados:
+          type: array
+          items:
+            type: string
+        montoMinimo:
+          type: number
