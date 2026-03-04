@@ -41,12 +41,23 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - MODE=server
+      - BASE_URL=${BASE_URL}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM=${SMTP_FROM}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME}
+      - EMAIL_DOMAIN=${EMAIL_DOMAIN}
+      - SMTP_TLS_IMPLICIT=${SMTP_TLS_IMPLICIT:-false}
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - worker_logs:/tmp/windmill/logs
-
+    networks:
+      - default
+      - omnicanalidad-smtp
     logging: *default-logging
 
   windmill_worker:
@@ -207,6 +218,11 @@ services:
       # - BASE_URL=":443" # uncomment and comment line above to enable HTTPS via custom certificate and key files
       # - BASE_URL=mydomain.com # Uncomment and comment line above to enable HTTPS handling by Caddy
     logging: *default-logging
+
+networks:
+  omnicanalidad-smtp:
+    external: true
+    name: omnicanalidad-smtp
 
 volumes:
   db_data: null

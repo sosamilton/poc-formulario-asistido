@@ -1,0 +1,123 @@
+summary: Initialize DDJJ flow with JWT token
+description: |2-
+  Complete flow to process DDJJ initialization:
+  1. Parse JWT token to extract CUIT
+  2. Fetch padron data (taxpayer info)
+  3. Fetch alicuota (tax rate) by activity code
+  4. Fetch historical DDJJ data
+  5. Fetch outstanding periods (periodos adeudados)
+  6. Calculate minimum amount
+  7. Create Form.io submission with precargado data
+value:
+  modules:
+    - id: a
+      value:
+        type: rawscript
+        path: f/ddjj/parse_jwt
+        content: ""
+        language: bun
+        input_transforms:
+          token:
+            expr: flow_input.token
+            type: javascript
+      summary: Parse JWT and extract CUIT
+    - id: parallel_fetch
+      value:
+        type: branchall
+        branches:
+          - summary: Fetch padron data
+            modules:
+              - id: b
+                value:
+                  type: rawscript
+                  path: f/ddjj/fetch_padron
+                  content: ""
+                  language: bun
+                  input_transforms:
+                    cuit:
+                      expr: results.a.cuit
+                      type: javascript
+                summary: Fetch padron data from Mockoon
+          - summary: Fetch historical data
+            modules:
+              - id: d
+                value:
+                  type: rawscript
+                  path: f/ddjj/fetch_historial
+                  content: ""
+                  language: bun
+                  input_transforms:
+                    cuit:
+                      expr: results.a.cuit
+                      type: javascript
+                summary: Fetch historical DDJJ data
+          - summary: Fetch outstanding periods
+            modules:
+              - id: e
+                value:
+                  type: rawscript
+                  path: f/ddjj/fetch_periodos_adeudados
+                  content: ""
+                  language: bun
+                  input_transforms:
+                    cuit:
+                      expr: results.a.cuit
+                      type: javascript
+                summary: Fetch outstanding periods
+      summary: Fetch data in parallel (padron, historial, periodos)
+    - id: c
+      value:
+        type: rawscript
+        path: f/ddjj/fetch_alicuota
+        content: ""
+        language: bun
+        input_transforms:
+          codigoActividad:
+            expr: results.parallel_fetch.b.codigoActividad
+            type: javascript
+      summary: Fetch alicuota by activity code
+    - id: f
+      value:
+        type: rawscript
+        path: f/ddjj/calcular_periodo_minimo
+        content: ""
+        language: bun
+        input_transforms:
+          regimen:
+            expr: results.parallel_fetch.b.regimen
+            type: javascript
+          alicuota:
+            expr: results.c.alicuota
+            type: javascript
+      summary: Calculate minimum amount
+    - id: g
+      value:
+        type: rawscript
+        path: f/ddjj/create_formio_submission
+        content: ""
+        language: bun
+        input_transforms:
+          data:
+            expr: |
+              ({
+                cuit: results.a.cuit,
+                razonSocial: results.parallel_fetch.b.razonSocial,
+                actividad: results.parallel_fetch.b.actividad,
+                regimen: results.parallel_fetch.b.regimen,
+                alicuota: results.c.alicuota,
+                montoAnterior: results.parallel_fetch.d.montoAnterior,
+                periodosAdeudados: results.parallel_fetch.e.periodosAdeudados,
+                montoMinimo: results.f.montoMinimo
+              })
+            type: javascript
+      summary: Create Form.io submission
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  required:
+    - token
+  properties:
+    token:
+      type: string
+      description: JWT token from webhook request
+      default: ""

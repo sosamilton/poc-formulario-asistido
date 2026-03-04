@@ -1,4 +1,4 @@
-import { decode } from "https://deno.land/x/djwt@v2.8/mod.ts";
+import jwt from "jsonwebtoken";
 
 type JWT = {
   cuit: string;
@@ -10,7 +10,7 @@ type JWT = {
 export async function main(token: string): Promise<JWT> {
   try {
     // Decode JWT without verification (for demo purposes)
-    const [_header, payload, _signature] = decode(token);
+    const payload = jwt.decode(token);
     
     if (!payload || typeof payload !== "object") {
       throw new Error("Invalid JWT payload");

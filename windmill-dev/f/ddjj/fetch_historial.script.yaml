@@ -1,14 +1,14 @@
 summary: Fetch historical DDJJ data
 description: Retrieves previous declaration amount (montoAnterior) from Mockoon API
+lock: '!inline f/ddjj/fetch_historial.script.lock'
 kind: script
-language: bun
 schema:
   $schema: https://json-schema.org/draft/2020-12/schema
   type: object
-  required:
-    - cuit
   properties:
     cuit:
       type: string
       description: CUIT number to lookup
-      default: ""
+      default: ''
+  required:
+    - cuit
