@@ -283,14 +283,9 @@ apis/
 
 ## 💡 Notas Importantes
 
-- **CUIT de prueba**: `30677993894` (del archivo `notas`)
+- **CUIT de prueba**: `20345534234` (del archivo `notas`)
 - **Form.io ID**: `699db24bb89b5983c653b400`
 - **Mockoon Port**: 3001
 - **Form.io Port**: 3010
 - **Windmill Port**: 8000 (ajustar según tu config)
 - **Workspace**: Asumo `demo` (ajustar según corresponda)
-
-El sistema está **95% implementado**. Solo falta:
-1. Reiniciar Mockoon
-2. Sincronizar Windmill
-3. Mejorar el form de Form.io (opcional para MVP)
