@@ -1,0 +1,23 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: iibb-frontend-dev
+    ports:
+      - "3011:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - VITE_AUTH_MODE=mock
+      - VITE_WINDMILL_URL=http://host.docker.internal:8000
+      - VITE_WINDMILL_WORKSPACE=demo
+      - VITE_FORMIO_URL=http://host.docker.internal:3001
+    restart: unless-stopped
+    networks:
+      - iibb-network
+
+networks:
+  iibb-network:
+    driver: bridge
