@@ -20,7 +20,7 @@
           "body": "{\n  \"cuit\": \"{{urlParam 'cuit'}}\",\n  \"razonSocial\": \"{{faker 'company.name'}}\",\n  \"actividad\": \"Servicios profesionales\",\n  \"codigoActividad\": \"620\",\n  \"regimen\": \"CM\"\n}",
           "latency": 0,
           "statusCode": 200,
-          "label": "CUIT 30677993894",
+          "label": "CUIT 20345534234",
           "headers": [],
           "bodyType": "INLINE",
           "filePath": "",
@@ -30,7 +30,7 @@
             {
               "target": "params",
               "modifier": "cuit",
-              "value": "30677993894",
+              "value": "20345534234",
               "invert": false,
               "operator": "equals"
             }
@@ -160,7 +160,7 @@
       "responses": [
         {
           "uuid": "96d9d6b1-4560-40ee-b70a-0ac357538e73",
-          "body": "{\n  \"cuit\": \"30677993894\",\n  \"montoAnterior\": 1500,\n  \"fechaUltimaDDJJ\": \"2026-01-15\"\n}",
+          "body": "{\n  \"cuit\": \"20345534234\",\n  \"montoAnterior\": 1500,\n  \"fechaUltimaDDJJ\": \"2026-01-15\"\n}",
           "latency": 0,
           "statusCode": 200,
           "label": "CUIT with previous DDJJ",
@@ -173,7 +173,7 @@
             {
               "target": "params",
               "modifier": "cuit",
-              "value": "30677993894",
+              "value": "20345534234",
               "invert": false,
               "operator": "equals"
             }
