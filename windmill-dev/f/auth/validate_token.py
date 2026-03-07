@@ -27,14 +27,14 @@ def main(token: str) -> Dict[str, Any]:
         raise Exception("Token no proporcionado")
     
     try:
-        # Separar partes del JWT
+        # Separar las tres partes del JWT (header.payload.signature)
         parts = token.split('.')
         if len(parts) != 3:
             raise Exception("Token JWT inválido")
         
-        # Decodificar payload
+        # Decodificar el payload en base64
         payload_b64 = parts[1]
-        # Agregar padding si es necesario
+        # Agregar padding de base64 si es necesario para decodificación correcta
         padding = 4 - len(payload_b64) % 4
         if padding != 4:
             payload_b64 += '=' * padding
@@ -42,13 +42,13 @@ def main(token: str) -> Dict[str, Any]:
         payload_json = base64.b64decode(payload_b64)
         payload = json.loads(payload_json)
         
-        # Verificar expiración
+        # Verificar si el token ha expirado
         import time
         if 'exp' in payload:
             if payload['exp'] < time.time():
                 raise Exception("Token expirado")
         
-        # Extraer datos del usuario (soporta formato ARBA y mock)
+        # Extraer y normalizar datos del usuario (compatible con formato ARBA y mock)
         user_data = {
             "cuit": payload.get("identifier") or payload.get("cuit") or payload.get("login"),
             "nombre": payload.get("fullname") or payload.get("name", "Usuario"),
@@ -69,22 +69,22 @@ def main(token: str) -> Dict[str, Any]:
         raise Exception(f"Error validando token: {str(e)}")
 
 
-# Para producción con Keycloak real, usar esta función:
+# Para entorno de producción con Keycloak real, utilizar esta función:
 def validate_keycloak_token(token: str, keycloak_url: str, realm: str) -> Dict[str, Any]:
     """
-    Valida token contra Keycloak real
-    TODO: Implementar cuando tengas Keycloak
+    Valida el token contra un servidor Keycloak real
+    TODO: Implementar cuando se configure Keycloak en producción
     """
     import requests
     
-    # Verificar token con Keycloak
+    # Verificar validez del token consultando el endpoint de introspección de Keycloak
     introspect_url = f"{keycloak_url}/realms/{realm}/protocol/openid-connect/token/introspect"
     
     response = requests.post(
         introspect_url,
         data={
             'token': token,
-            'client_id': 'admin-cli'  # Configurar según tu setup
+            'client_id': 'admin-cli'  # Configurar según la configuración del cliente
         }
     )
     
