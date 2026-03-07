@@ -17,19 +17,19 @@ def main(token: str) -> Dict[str, Any]:
     Returns:
         Configuración filtrada por permisos
     """
-    # 1. Validar token y obtener usuario
+    # 1. Validar el token JWT y extraer información del usuario
     user = validate_token(token)
     
-    # 2. Obtener todos los formularios disponibles
+    # 2. Obtener catálogo completo de formularios disponibles en el sistema
     all_forms = get_all_forms()
     
-    # 3. Filtrar por permisos
+    # 3. Filtrar formularios según los permisos y roles del usuario
     authorized_routes = []
     for form in all_forms:
-        if can_access_form(user, form["formId"]):
+        if can_access_form(user, form["metadata"]["formId"]):
             authorized_routes.append(form)
     
-    # 4. Retornar configuración
+    # 4. Retornar configuración personalizada con formularios autorizados
     return {
         "user": {
             "cuit": user["cuit"],
@@ -52,8 +52,8 @@ def get_all_forms() -> List[Dict[str, Any]]:
     return [
         {
             "path": "/ddjj/:periodo",
-            "formId": "ddjj-mensual",
             "metadata": {
+                "formId": "ddjj-mensual",
                 "title": "Declaración Jurada Mensual",
                 "description": "Complete su declaración jurada del período",
                 "lifecycle": {
@@ -65,8 +65,8 @@ def get_all_forms() -> List[Dict[str, Any]]:
         },
         {
             "path": "/consulta-deuda",
-            "formId": "consulta-deuda",
             "metadata": {
+                "formId": "consulta-deuda",
                 "title": "Consulta de Deuda",
                 "description": "Consulte su estado de deuda",
                 "lifecycle": {
@@ -78,8 +78,8 @@ def get_all_forms() -> List[Dict[str, Any]]:
         },
         {
             "path": "/fiscalizacion/requerimiento",
-            "formId": "requerimiento-fiscal",
             "metadata": {
+                "formId": "requerimiento-fiscal",
                 "title": "Requerimiento Fiscal",
                 "description": "Generar requerimiento de fiscalización",
                 "lifecycle": {
@@ -96,20 +96,20 @@ def can_access_form(user: Dict[str, Any], form_id: str) -> bool:
     """
     Verifica si el usuario puede acceder a un formulario
     """
-    # Buscar el formulario
+    # Buscar el formulario en el catálogo por su ID
     all_forms = get_all_forms()
-    form = next((f for f in all_forms if f["formId"] == form_id), None)
+    form = next((f for f in all_forms if f["metadata"]["formId"] == form_id), None)
     
     if not form:
         return False
     
-    # Verificar roles
+    # Obtener roles requeridos para acceder al formulario
     required_roles = form["metadata"].get("requiredRoles", [])
     user_roles = user.get("roles", [])
     
-    # Si no hay roles requeridos, todos pueden acceder
+    # Si el formulario no requiere roles específicos, permitir acceso a todos
     if not required_roles:
         return True
     
-    # Verificar si tiene alguno de los roles requeridos
+    # Verificar si el usuario posee al menos uno de los roles requeridos
     return any(role in user_roles for role in required_roles)
