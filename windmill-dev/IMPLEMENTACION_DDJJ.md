@@ -2,7 +2,7 @@
 
 ## ✅ Componentes Implementados
 
-### 1. Windmill - Scripts y Flow (`/home/msosa/iibb/windmill-dev/f/ddjj/`)
+### 1. Windmill - Scripts y Flow (`~/iibb/windmill-dev/f/ddjj/`)
 
 #### Scripts Creados (7 total):
 1. **`parse_jwt.ts`** - Decodifica JWT y extrae CUIT del claim `identifier`
@@ -26,12 +26,12 @@ Cada script tiene su archivo `.script.yaml` con metadata y esquema de parámetro
   - Sin autenticación (para demo)
   - Modo: sync (respuesta inmediata)
 
-### 2. Mockoon - APIs Mock (`/home/msosa/iibb/apis/iibb.json`)
+### 2. Mockoon - APIs Mock (`~/iibb/apis/iibb.json`)
 
 #### Endpoints Implementados (4 total):
 
 1. **`GET /api/padron/:cuit`**
-   - CUIT `30677993894` → Servicios profesionales, código 620, régimen CM
+   - CUIT `20345534234` → Servicios profesionales, código 620, régimen CM
    - Otros CUITs → Comercio minorista, código 741, régimen LOCAL
    - Usa faker para generar razón social dinámica
 
@@ -41,7 +41,7 @@ Cada script tiene su archivo `.script.yaml` con metadata y esquema de parámetro
    - Otros códigos → alícuota 3.0%
 
 3. **`GET /api/historial/:cuit`**
-   - CUIT `30677993894` → `{ montoAnterior: 1500, fechaUltimaDDJJ: "2026-01-15" }`
+   - CUIT `20345534234` → `{ montoAnterior: 1500, fechaUltimaDDJJ: "2026-01-15" }`
    - Otros CUITs → `{ montoAnterior: null, fechaUltimaDDJJ: null }`
 
 4. **`GET /api/periodos-adeudados/:cuit`**
@@ -55,17 +55,17 @@ Cada script tiene su archivo `.script.yaml` con metadata y esquema de parámetro
 ```bash
 # Detener Mockoon actual (si está corriendo)
 # Luego reiniciar con el nuevo archivo de configuración
-# Mockoon debe cargar: /home/msosa/iibb/apis/iibb.json
+# Mockoon debe cargar: ~/iibb/apis/iibb.json
 # Puerto: 3001
 ```
 
 ### Paso 2: Verificar Endpoints de Mockoon
 ```bash
 # Probar cada endpoint
-curl http://localhost:3001/api/padron/30677993894
+curl http://localhost:3001/api/padron/20345534234
 curl http://localhost:3001/api/actividad/620
-curl http://localhost:3001/api/historial/30677993894
-curl http://localhost:3001/api/periodos-adeudados/30677993894
+curl http://localhost:3001/api/historial/20345534234
+curl http://localhost:3001/api/periodos-adeudados/20345534234
 ```
 
 Respuestas esperadas:
@@ -76,7 +76,7 @@ Respuestas esperadas:
 
 ### Paso 3: Sincronizar Windmill
 ```bash
-cd /home/msosa/iibb/windmill-dev
+cd ~/iibb/windmill-dev
 
 # Sincronizar todos los scripts, flows y triggers con Windmill
 wmill sync push
@@ -90,8 +90,8 @@ wmill flow list | grep ddjj
 
 Obtener el token JWT de ejemplo:
 ```bash
-# Token del archivo notas (CUIT: 30677993894)
-TOKEN="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGlmaWVyIjoiMzA2Nzc5OTM4OTQiLCJmdWxsbmFtZSI6IkpvaG4gRG9lIiwicGVybWlzc2lvbnMiOlsicmVhZCIsIndyaXRlIl0sImxvZ2luIjoiam9obmRvZSJ9..."
+# Token del archivo jwt.example (CUIT: 20345534234)
+TOKEN="eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJyaUhLNmwxZXZtYjBVeF9GaFMxM3JSQUdSNWozemE5V2dRX1lkWnJLa2NjIn0..."
 ```
 
 Llamar al webhook:
@@ -107,7 +107,7 @@ Respuesta esperada:
 {
   "form_url": "http://localhost:3010/#/form/699db24bb89b5983c653b400/submission/abc123",
   "submission_id": "abc123",
-  "cuit": "30677993894",
+  "cuit": "20345534234",
   "periodosAdeudados": ["2025-11", "2025-12", "2026-01", "2026-02"],
   "montoAnterior": 1500
 }
@@ -181,7 +181,7 @@ curl -X PUT http://localhost:3010/form/699db24bb89b5983c653b400 \
 ### Test 1: Endpoints Mockoon
 ```bash
 # Debe devolver JSON válido para cada endpoint
-for endpoint in "padron/30677993894" "actividad/620" "historial/30677993894" "periodos-adeudados/30677993894"; do
+for endpoint in "padron/20345534234" "actividad/620" "historial/20345534234" "periodos-adeudados/20345534234"; do
   echo "Testing /api/$endpoint"
   curl -s http://localhost:3001/api/$endpoint | jq .
 done
@@ -191,7 +191,7 @@ done
 ```bash
 # Probar cada script por separado
 wmill script run f/ddjj/parse_jwt --data '{"token":"..."}'
-wmill script run f/ddjj/fetch_padron --data '{"cuit":"30677993894"}'
+wmill script run f/ddjj/fetch_padron --data '{"cuit":"20345534234"}'
 wmill script run f/ddjj/fetch_alicuota --data '{"codigoActividad":"620"}'
 # etc...
 ```

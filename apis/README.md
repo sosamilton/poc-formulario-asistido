@@ -73,9 +73,7 @@ curl http://localhost:3001/api/padron/20345534234
 ```
 
 **CUITs de prueba configurados:**
-- `30677993894` - Comercio Minorista (regimen LOCAL)
-- `20345534234` - Servicios Profesionales (regimen CM)
-- Cualquier otro CUIT devuelve datos generados con Faker
+- `20345534234`
 
 ### 2. Alícuota - Obtener tasa por código de actividad
 
