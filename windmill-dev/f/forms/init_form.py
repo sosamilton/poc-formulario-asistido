@@ -24,14 +24,14 @@ def main(
     Returns:
         Dict con submissionId, prefillData y formSchema
     """
-    # 1. Validar token
+    # 1. Validar el token JWT y extraer datos del usuario
     user = validate_token(token)
     
-    # 2. Verificar permisos
+    # 2. Verificar que el usuario tenga permisos para acceder al formulario solicitado
     if not can_access_form(user, form_id):
         raise Exception(f"Usuario no autorizado para acceder al formulario {form_id}")
     
-    # 3. Ejecutar lógica específica del formulario
+    # 3. Ejecutar lógica de inicialización específica según el tipo de formulario
     if form_id == "ddjj-mensual":
         return init_ddjj_mensual(user, params)
     elif form_id == "consulta-deuda":
@@ -45,129 +45,61 @@ def main(
 
 def init_ddjj_mensual(user: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Inicializa formulario de DDJJ mensual con datos precargados
-    Integrado con scripts existentes de f/ddjj/
+    Inicializa formulario de DDJJ mensual ejecutando el workflow de precarga
+    y devolviendo URL de Form.io
     """
+    import os
+    import urllib.request
+    import json
+    
     periodo = params.get("periodo", "2026-03")
     cuit = user["cuit"]
     
-    # Llamar a scripts existentes para obtener datos reales
+    # 1. Ejecutar workflow de DDJJ para obtener datos precargados desde APIs externas
     try:
-        # 1. Obtener datos del padrón
-        padron = wmill.run_script_sync(
-            "f/ddjj/fetch_padron",
-            args={"codigoActividad": cuit}
-        )
-        
-        # 2. Obtener alícuota
-        alicuota_data = wmill.run_script_sync(
-            "f/ddjj/fetch_alicuota",
-            args={"codigoActividad": padron.get("codigoActividad", "620")}
-        )
-        
-        # 3. Obtener historial
-        historial = wmill.run_script_sync(
-            "f/ddjj/fetch_historial",
-            args={"cuit": cuit}
-        )
-        
-        # 4. Obtener períodos adeudados
-        periodos = wmill.run_script_sync(
-            "f/ddjj/fetch_periodos_adeudados",
-            args={"cuit": cuit}
-        )
-        
-        # 5. Calcular monto mínimo
-        monto_minimo = wmill.run_script_sync(
-            "f/ddjj/calcular_periodo_minimo",
+        workflow_result = wmill.run_flow_sync(
+            "f/ddjj/init_ddjj",
             args={
-                "regimen": padron.get("regimen", "CM"),
-                "alicuota": alicuota_data.get("alicuota", 3.5)
+                "cuit": cuit,
+                "periodo": periodo
             }
         )
-        
-        prefill_data = {
-            "cuit": cuit,
-            "razonSocial": padron.get("razonSocial", user["nombre"]),
-            "periodo": periodo,
-            "actividad": padron.get("actividad", ""),
-            "codigoActividad": padron.get("codigoActividad", ""),
-            "regimen": padron.get("regimen", "CM"),
-            "alicuota": alicuota_data.get("alicuota", 3.5),
-            "montoAnterior": historial.get("montoAnterior", 0),
-            "montoMinimo": monto_minimo,
-            "periodosAdeudados": periodos.get("periodosAdeudados", [])
-        }
-        
+        prefill_data = workflow_result.get("data", {})
     except Exception as e:
-        # Fallback a datos de ejemplo si falla
-        print(f"Error obteniendo datos reales: {e}")
+        print(f"Error ejecutando workflow DDJJ: {e}")
+        # Fallback: usar datos mínimos si falla la consulta a APIs externas
         prefill_data = {
             "cuit": cuit,
-            "razonSocial": user["nombre"],
-            "periodo": periodo,
-            "actividad": "Servicios profesionales",
-            "alicuota": 3.5,
-            "montoAnterior": 15000.00
+            "razonSocial": user.get("nombre", ""),
+            "periodo": periodo
         }
     
-    # Schema del formulario (simplificado)
-    form_schema = {
-        "components": [
-            {
-                "type": "textfield",
-                "key": "cuit",
-                "label": "CUIT",
-                "disabled": True
-            },
-            {
-                "type": "textfield",
-                "key": "razonSocial",
-                "label": "Razón Social",
-                "disabled": True
-            },
-            {
-                "type": "textfield",
-                "key": "periodo",
-                "label": "Período",
-                "disabled": True
-            },
-            {
-                "type": "number",
-                "key": "ingresosBrutos",
-                "label": "Ingresos Brutos",
-                "required": True,
-                "validate": {
-                    "min": 0
-                }
-            },
-            {
-                "type": "number",
-                "key": "montoDeclarado",
-                "label": "Monto a Declarar",
-                "required": True,
-                "validate": {
-                    "min": 0
-                }
-            },
-            {
-                "type": "textarea",
-                "key": "observaciones",
-                "label": "Observaciones"
-            },
-            {
-                "type": "button",
-                "action": "submit",
-                "label": "Enviar Declaración",
-                "theme": "primary"
-            }
-        ]
-    }
+    # 2. Crear una nueva submission en Form.io con los datos precargados
+    formio_url = os.getenv("FORMIO_URL", "https://formio.mdsoluciones.ar")
+    form_name = "iibbSimple"  # Nombre del formulario configurado en Form.io
     
+    try:
+        # Enviar datos precargados a Form.io para crear un borrador de submission
+        url = f"{formio_url}/{form_name}/submission"
+        data = json.dumps({"data": prefill_data}).encode('utf-8')
+        req = urllib.request.Request(
+            url,
+            data=data,
+            headers={'Content-Type': 'application/json'}
+        )
+        
+        with urllib.request.urlopen(req) as response:
+            submission = json.loads(response.read().decode('utf-8'))
+            submission_id = submission.get("_id")
+    except Exception as e:
+        print(f"Error conectando con Form.io: {e}")
+        submission_id = None
+    
+    # 3. Retornar URL del formulario y datos para que el frontend lo renderice
     return {
-        "submissionId": None,  # Por ahora sin draft
-        "prefillData": prefill_data,
-        "formSchema": form_schema
+        "formUrl": f"{formio_url}/{form_name}",
+        "submissionId": submission_id,
+        "prefillData": prefill_data
     }
 
 
