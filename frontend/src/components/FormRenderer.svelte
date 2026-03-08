@@ -35,12 +35,14 @@
 
       submissionId = initData.submissionId;
 
-      // 2. Renderizar formulario
+      // 2. Cargar schema del formulario desde Form.io
+      const formioInstance = new Formio(initData.formUrl);
+      const formSchema = await formioInstance.loadForm();
+
+      // 3. Renderizar formulario con schema y datos precargados
       formio = await Formio.createForm(
         formContainer,
-        {
-          components: initData.formSchema.components || []
-        },
+        formSchema,
         {
           submission: initData.submissionId 
             ? { _id: initData.submissionId }
@@ -49,7 +51,7 @@
         }
       );
 
-      // 3. Configurar event handlers
+      // 4. Configurar event handlers
       formio.on('submit', handleSubmit);
       formio.on('change', handleChange);
 
