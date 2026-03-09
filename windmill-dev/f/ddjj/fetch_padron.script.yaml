@@ -1,5 +1,5 @@
-summary: Fetch padron data from Mockoon API
-description: Retrieves taxpayer information including activity code and tax regime
+summary: Obtener datos del padrón desde API Mockoon
+description: Recupera información del contribuyente incluyendo código de actividad y régimen impositivo
 lock: '!inline f/ddjj/fetch_padron.script.lock'
 kind: script
 schema:
@@ -8,7 +8,7 @@ schema:
   properties:
     cuit:
       type: string
-      description: CUIT number to lookup
+      description: Número de CUIT a consultar
       default: ''
   required:
     - cuit

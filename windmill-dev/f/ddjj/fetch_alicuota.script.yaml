@@ -1,5 +1,5 @@
-summary: Fetch alicuota by activity code
-description: Retrieves tax rate (alicuota) for a given activity code from Mockoon API
+summary: Obtener alícuota por código de actividad
+description: Recupera la tasa impositiva (alícuota) para un código de actividad dado desde API Mockoon
 lock: '!inline f/ddjj/fetch_alicuota.script.lock'
 kind: script
 schema:
@@ -8,7 +8,7 @@ schema:
   properties:
     codigoActividad:
       type: string
-      description: Activity code to lookup
+      description: Código de actividad a consultar
       default: ''
   required:
     - codigoActividad

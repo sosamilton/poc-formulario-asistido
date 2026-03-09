@@ -1,5 +1,5 @@
-summary: Parse JWT token and extract CUIT
-description: Decodes JWT token and extracts the CUIT from the identifier claim
+summary: Parsear token JWT y extraer CUIT
+description: Decodifica el token JWT y extrae el CUIT del claim identifier
 lock: '!inline f/ddjj/parse_jwt.script.lock'
 kind: script
 schema:
@@ -8,7 +8,7 @@ schema:
   properties:
     token:
       type: string
-      description: JWT token from webhook request
+      description: Token JWT desde request de webhook
       default: null
       originalType: string
   required:

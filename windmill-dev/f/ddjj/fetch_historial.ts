@@ -11,7 +11,7 @@ export async function main(cuit: string): Promise<HistorialData> {
     const response = await fetch(`${mockoonUrl}/api/historial/${cuit}`);
     
     if (!response.ok) {
-      throw new Error(`Mockoon API error: ${response.status} ${response.statusText}`);
+      throw new Error(`Error en API Mockoon: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
@@ -22,6 +22,6 @@ export async function main(cuit: string): Promise<HistorialData> {
       fechaUltimaDDJJ: data.fechaUltimaDDJJ,
     };
   } catch (error) {
-    throw new Error(`Failed to fetch historial data: ${(error as Error).message}`);
+    throw new Error(`Error al obtener datos históricos: ${(error as Error).message}`);
   }
 }

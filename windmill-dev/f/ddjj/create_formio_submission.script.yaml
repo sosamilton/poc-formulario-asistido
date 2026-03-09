@@ -1,5 +1,5 @@
-summary: Create Form.io submission with precargado data
-description: Creates a draft submission in Form.io with all collected data
+summary: Crear submission en Form.io con datos precargados
+description: Crea un borrador de submission en Form.io con todos los datos recopilados
 lock: '!inline f/ddjj/create_formio_submission.script.lock'
 kind: script
 schema:
@@ -8,7 +8,7 @@ schema:
   properties:
     data:
       type: object
-      description: Complete submission data
+      description: Datos completos de la submission
       default: null
       format: resource-submission_data
       properties:

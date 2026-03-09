@@ -11,7 +11,7 @@ export async function main(codigoActividad: string): Promise<AlicuotaData> {
     const response = await fetch(`${mockoonUrl}/api/actividad/${codigoActividad}`);
     
     if (!response.ok) {
-      throw new Error(`Mockoon API error: ${response.status} ${response.statusText}`);
+      throw new Error(`Error en API Mockoon: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
@@ -22,6 +22,6 @@ export async function main(codigoActividad: string): Promise<AlicuotaData> {
       alicuota: data.alicuota,
     };
   } catch (error) {
-    throw new Error(`Failed to fetch alicuota data: ${(error as Error).message}`);
+    throw new Error(`Error al obtener datos de alícuota: ${(error as Error).message}`);
   }
 }

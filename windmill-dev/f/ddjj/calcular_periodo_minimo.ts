@@ -8,8 +8,8 @@ export async function main(
   regimen: string,
   alicuota: number
 ): Promise<CalculoResult> {
-  // Business logic for minimum amount calculation
-  // For demo: hardcoded values based on regime
+  // Lógica de negocio para cálculo de monto mínimo
+  // Para demo: valores hardcodeados según régimen
   
   let montoMinimo = 0;
   

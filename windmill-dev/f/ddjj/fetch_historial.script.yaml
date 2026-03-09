@@ -1,5 +1,5 @@
-summary: Fetch historical DDJJ data
-description: Retrieves previous declaration amount (montoAnterior) from Mockoon API
+summary: Obtener datos históricos de DDJJ
+description: Recupera datos históricos de declaraciones juradas para un CUIT dado (montoAnterior) desde la API de Mockoon
 lock: '!inline f/ddjj/fetch_historial.script.lock'
 kind: script
 schema:
@@ -8,7 +8,7 @@ schema:
   properties:
     cuit:
       type: string
-      description: CUIT number to lookup
+      description: Número de CUIT a consultar
       default: ''
   required:
     - cuit

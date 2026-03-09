@@ -13,7 +13,7 @@ export async function main(cuit: string): Promise<PadronData> {
     const response = await fetch(`${mockoonUrl}/api/padron/${cuit}`);
     
     if (!response.ok) {
-      throw new Error(`Mockoon API error: ${response.status} ${response.statusText}`);
+      throw new Error(`Error en API Mockoon: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
@@ -26,6 +26,6 @@ export async function main(cuit: string): Promise<PadronData> {
       regimen: data.regimen,
     };
   } catch (error) {
-    throw new Error(`Failed to fetch padron data: ${(error as Error).message}`);
+    throw new Error(`Error al obtener datos del padrón: ${(error as Error).message}`);
   }
 }
