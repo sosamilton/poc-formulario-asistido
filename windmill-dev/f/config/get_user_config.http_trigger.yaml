@@ -1,0 +1,17 @@
+summary: guardado
+description: ''
+authentication_method: none
+authentication_resource_path: ''
+email: admin@arba.gob.ar
+http_method: post
+is_flow: false
+is_static_website: false
+mode: enabled
+raw_string: false
+request_type: sync
+route_path: config/user
+route_path_key: config/user
+script_path: f/config/get_user_config
+static_asset_config: null
+workspaced_route: false
+wrap_body: false
