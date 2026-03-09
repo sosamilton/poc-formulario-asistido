@@ -10,7 +10,7 @@ function base64UrlDecode(str: string): string {
   while (base64.length % 4) {
     base64 += '=';
   }
-  return Buffer.from(base64, 'base64').toString('utf-8');
+  return atob(base64);
 }
 
 export async function main(token: string): Promise<JWT> {
@@ -24,7 +24,7 @@ export async function main(token: string): Promise<JWT> {
     const payload = JSON.parse(payloadStr);
     
     if (!payload || typeof payload !== "object") {
-      throw new Error(`Invalid JWT payload. Decoded value: ${JSON.stringify(payload)}`);
+      throw new Error("Invalid JWT payload");
     }
     
     const identifier = payload.identifier;
@@ -33,7 +33,7 @@ export async function main(token: string): Promise<JWT> {
     const login = payload.login || "";
     
     if (!identifier) {
-      throw new Error(`CUIT not found in token. Available keys: ${Object.keys(payload).join(', ')}`);
+      throw new Error("CUIT not found in token (identifier claim missing)");
     }
     
     return {
@@ -43,6 +43,6 @@ export async function main(token: string): Promise<JWT> {
       login,
     };
   } catch (error) {
-    throw new Error(`Failed to parse JWT: ${(error as any).message}`);
+    throw new Error(`Failed to parse JWT: ${(error as Error).message}`);
   }
 }

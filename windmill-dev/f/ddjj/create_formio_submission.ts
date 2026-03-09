@@ -18,15 +18,13 @@ type SubmissionResult = {
 };
 
 export async function main(data: SubmissionData): Promise<SubmissionResult> {
-  const formioUrl = "http://localhost:3010";
-  const formId = "699db24bb89b5983c653b400";
-  
+  const formioUrl = "https://formio.mdsoluciones.ar/";
+  const formId = "69ac22b5c99310e3a822b518";
   const submissionPayload = {
     data: {
       cuit: data.cuit,
       razonSocial: data.razonSocial,
       actividad: data.actividad,
-      regimen: data.regimen,
       alicuota: data.alicuota,
       montoAnterior: data.montoAnterior,
       periodoADeclarar1: null, // User will select from dropdown
@@ -36,7 +34,7 @@ export async function main(data: SubmissionData): Promise<SubmissionResult> {
       _montoMinimo: data.montoMinimo,
     },
   };
-  
+
   try {
     const response = await fetch(`${formioUrl}/form/${formId}/submission`, {
       method: "POST",
@@ -45,14 +43,14 @@ export async function main(data: SubmissionData): Promise<SubmissionResult> {
       },
       body: JSON.stringify(submissionPayload),
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Form.io API error: ${response.status} - ${errorText}`);
     }
-    
+
     const result = await response.json();
-    
+
     return {
       submission_id: result._id,
       form_url: `${formioUrl}/#/form/${formId}/submission/${result._id}`,

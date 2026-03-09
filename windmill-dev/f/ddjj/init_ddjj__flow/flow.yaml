@@ -1,5 +1,5 @@
 summary: Initialize DDJJ flow with JWT token
-description: |2-
+description: |-
   Complete flow to process DDJJ initialization:
   1. Parse JWT token to extract CUIT
   2. Fetch padron data (taxpayer info)
@@ -10,114 +10,101 @@ description: |2-
   7. Create Form.io submission with precargado data
 value:
   modules:
-    - id: a
+    - id: k
       value:
-        type: rawscript
-        path: f/ddjj/parse_jwt
-        content: ""
-        language: bun
+        type: script
         input_transforms:
           token:
-            expr: flow_input.token
             type: javascript
-      summary: Parse JWT and extract CUIT
+            expr: flow_input.token
+        is_trigger: false
+        path: f/ddjj/parse_jwt
     - id: parallel_fetch
+      summary: Fetch data in parallel (padron, historial, periodos)
       value:
         type: branchall
         branches:
           - summary: Fetch padron data
             modules:
-              - id: b
+              - id: h
                 value:
-                  type: rawscript
-                  path: f/ddjj/fetch_padron
-                  content: ""
-                  language: bun
+                  type: script
                   input_transforms:
                     cuit:
-                      expr: results.a.cuit
                       type: javascript
-                summary: Fetch padron data from Mockoon
+                      expr: results.k.cuit
+                  is_trigger: false
+                  path: f/ddjj/fetch_padron
+            expr: ''
+            parallel: true
+            skip_failure: true
           - summary: Fetch historical data
             modules:
-              - id: d
+              - id: l
                 value:
-                  type: rawscript
-                  path: f/ddjj/fetch_historial
-                  content: ""
-                  language: bun
+                  type: script
                   input_transforms:
                     cuit:
-                      expr: results.a.cuit
                       type: javascript
-                summary: Fetch historical DDJJ data
+                      expr: results.k.cuit
+                  is_trigger: false
+                  path: f/ddjj/fetch_historial
+            expr: ''
+            parallel: true
+            skip_failure: true
           - summary: Fetch outstanding periods
             modules:
-              - id: e
+              - id: m
                 value:
-                  type: rawscript
-                  path: f/ddjj/fetch_periodos_adeudados
-                  content: ""
-                  language: bun
+                  type: script
                   input_transforms:
                     cuit:
-                      expr: results.a.cuit
                       type: javascript
-                summary: Fetch outstanding periods
-      summary: Fetch data in parallel (padron, historial, periodos)
-    - id: c
+                      expr: results.k.cuit
+                  is_trigger: false
+                  path: f/ddjj/fetch_periodos_adeudados
+            expr: ''
+            parallel: true
+            skip_failure: true
+        parallel: true
+    - id: n
       value:
-        type: rawscript
-        path: f/ddjj/fetch_alicuota
-        content: ""
-        language: bun
+        type: script
         input_transforms:
           codigoActividad:
-            expr: results.parallel_fetch.b.codigoActividad
             type: javascript
-      summary: Fetch alicuota by activity code
-    - id: f
+            expr: results.h.codigoActividad
+        is_trigger: false
+        path: f/ddjj/fetch_alicuota
+    - id: o
       value:
-        type: rawscript
-        path: f/ddjj/calcular_periodo_minimo
-        content: ""
-        language: bun
-        input_transforms:
-          regimen:
-            expr: results.parallel_fetch.b.regimen
-            type: javascript
-          alicuota:
-            expr: results.c.alicuota
-            type: javascript
-      summary: Calculate minimum amount
-    - id: g
-      value:
-        type: rawscript
-        path: f/ddjj/create_formio_submission
-        content: ""
-        language: bun
+        type: script
         input_transforms:
           data:
-            expr: |
-              ({
-                cuit: results.a.cuit,
-                razonSocial: results.parallel_fetch.b.razonSocial,
-                actividad: results.parallel_fetch.b.actividad,
-                regimen: results.parallel_fetch.b.regimen,
-                alicuota: results.c.alicuota,
-                montoAnterior: results.parallel_fetch.d.montoAnterior,
-                periodosAdeudados: results.parallel_fetch.e.periodosAdeudados,
-                montoMinimo: results.f.montoMinimo
-              })
             type: javascript
-      summary: Create Form.io submission
+            expr: |-
+              {
+                "cuit": results.k?.cuit ?? "",
+                "razonSocial": results.h?.razonSocial ?? "",
+                "actividad": results.h?.actividad ?? "",
+                "regimen": results.h?.regimen ?? "",
+                "alicuota": results.n?.alicuota ?? 0,
+                "montoAnterior": results.l?.montoAnterior ?? null,
+                "periodosAdeudados": results.m?.periodosAdeudados ?? [],
+                "montoMinimo": 0
+              }
+        is_trigger: false
+        path: f/ddjj/create_formio_submission
 schema:
   $schema: https://json-schema.org/draft/2020-12/schema
   type: object
-  required:
+  order:
     - token
   properties:
     token:
       type: string
-      description: JWT token from webhook request
-      default: ""
+      description: 'JWT token from webhook request. Generate one using: wmill script
+        run f/ddjj/generate_test_jwt'
+      default: GENERATE_TOKEN_FIRST_USING_f/ddjj/generate_test_jwt
+  required:
+    - token

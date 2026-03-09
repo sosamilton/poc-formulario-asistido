@@ -4,7 +4,7 @@ type PeriodosData = {
 };
 
 export async function main(cuit: string): Promise<PeriodosData> {
-  const mockoonUrl = "http://localhost:3001";
+  const mockoonUrl = "https://apis.mdsoluciones.ar";
   
   try {
     const response = await fetch(`${mockoonUrl}/api/periodos-adeudados/${cuit}`);

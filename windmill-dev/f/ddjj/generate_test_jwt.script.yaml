@@ -1,0 +1,10 @@
+summary: Generate test JWT token
+description: Generates a valid JWT token for testing with fixed payload from
+  jwt.example (CUIT 20345534234, JUAN PALOTE)
+lock: '!inline f/ddjj/generate_test_jwt.script.lock'
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties: {}
+  required: []

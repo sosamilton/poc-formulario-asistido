@@ -9,13 +9,17 @@ schema:
     data:
       type: object
       description: Complete submission data
+      default: null
+      format: resource-submission_data
       properties:
         actividad:
           type: string
+          originalType: string
         alicuota:
           type: number
         cuit:
           type: string
+          originalType: string
         montoAnterior:
           type: number
         montoMinimo:
@@ -24,9 +28,12 @@ schema:
           type: array
           items:
             type: string
+          originalType: string[]
         razonSocial:
           type: string
+          originalType: string
         regimen:
           type: string
+          originalType: string
   required:
     - data
