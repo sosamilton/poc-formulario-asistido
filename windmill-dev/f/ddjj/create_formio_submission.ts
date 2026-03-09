@@ -27,9 +27,9 @@ export async function main(data: SubmissionData): Promise<SubmissionResult> {
       actividad: data.actividad,
       alicuota: data.alicuota,
       montoAnterior: data.montoAnterior,
-      periodoADeclarar1: null, // User will select from dropdown
-      montoADeclarar: null, // User will fill this
-      // Store periodos for dynamic select population
+      periodoADeclarar1: null, // El usuario seleccionará desde el dropdown
+      montoADeclarar: null, // El usuario completará este campo
+      // Almacenar períodos para población dinámica del select
       _periodosAdeudados: data.periodosAdeudados,
       _montoMinimo: data.montoMinimo,
     },
@@ -46,7 +46,7 @@ export async function main(data: SubmissionData): Promise<SubmissionResult> {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Form.io API error: ${response.status} - ${errorText}`);
+      throw new Error(`Error en API Form.io: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();
@@ -59,6 +59,6 @@ export async function main(data: SubmissionData): Promise<SubmissionResult> {
       montoAnterior: data.montoAnterior,
     };
   } catch (error) {
-    throw new Error(`Failed to create Form.io submission: ${(error as Error).message}`);
+    throw new Error(`Error al crear submission en Form.io: ${(error as Error).message}`);
   }
 }

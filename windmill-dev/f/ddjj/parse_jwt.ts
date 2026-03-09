@@ -17,14 +17,14 @@ export async function main(token: string): Promise<JWT> {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) {
-      throw new Error("Invalid JWT format: expected 3 parts");
+      throw new Error("Formato JWT inválido: se esperaban 3 partes");
     }
     
     const payloadStr = base64UrlDecode(parts[1]);
     const payload = JSON.parse(payloadStr);
     
     if (!payload || typeof payload !== "object") {
-      throw new Error(`Invalid JWT payload. Decoded value: ${JSON.stringify(payload)}`);
+      throw new Error(`Payload JWT inválido. Valor decodificado: ${JSON.stringify(payload)}`);
     }
     
     const identifier = payload.identifier;
@@ -33,7 +33,7 @@ export async function main(token: string): Promise<JWT> {
     const login = payload.login || "";
     
     if (!identifier) {
-      throw new Error(`CUIT not found in token. Available keys: ${Object.keys(payload).join(', ')}`);
+      throw new Error(`CUIT no encontrado en token. Claves disponibles: ${Object.keys(payload).join(', ')}`);
     }
     
     return {
@@ -43,6 +43,6 @@ export async function main(token: string): Promise<JWT> {
       login,
     };
   } catch (error) {
-    throw new Error(`Failed to parse JWT: ${(error as any).message}`);
+    throw new Error(`Error al parsear JWT: ${(error as any).message}`);
   }
 }

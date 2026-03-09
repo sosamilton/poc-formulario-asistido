@@ -1,5 +1,5 @@
-summary: null
-description: null
+summary: Inicializar DDJJ vía HTTP
+description: Endpoint HTTP para inicializar el flujo de DDJJ con token JWT
 authentication_method: none
 authentication_resource_path: null
 email: admin@arba.gob.ar

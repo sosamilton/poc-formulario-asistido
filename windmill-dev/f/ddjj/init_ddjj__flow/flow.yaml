@@ -1,13 +1,13 @@
-summary: Initialize DDJJ flow with JWT token
+summary: Inicializar flujo de DDJJ con token JWT
 description: |-
-  Complete flow to process DDJJ initialization:
-  1. Parse JWT token to extract CUIT
-  2. Fetch padron data (taxpayer info)
-  3. Fetch alicuota (tax rate) by activity code
-  4. Fetch historical DDJJ data
-  5. Fetch outstanding periods (periodos adeudados)
-  6. Calculate minimum amount
-  7. Create Form.io submission with precargado data
+  Flujo completo para procesar la inicialización de DDJJ:
+  1. Parsear token JWT para extraer CUIT
+  2. Obtener datos del padrón (información del contribuyente)
+  3. Obtener alícuota (tasa impositiva) por código de actividad
+  4. Obtener datos históricos de DDJJ
+  5. Obtener períodos adeudados (períodos sin DDJJ)
+  6. Calcular monto mínimo
+  7. Crear submission en Form.io con datos precargados
 value:
   modules:
     - id: k
@@ -20,11 +20,11 @@ value:
         is_trigger: false
         path: f/ddjj/parse_jwt
     - id: parallel_fetch
-      summary: Fetch data in parallel (padron, historial, periodos)
+      summary: Obtener datos en paralelo (padrón, historial, períodos)
       value:
         type: branchall
         branches:
-          - summary: Fetch padron data
+          - summary: Obtener datos del padrón
             modules:
               - id: h
                 value:
@@ -38,7 +38,7 @@ value:
             expr: ''
             parallel: true
             skip_failure: true
-          - summary: Fetch historical data
+          - summary: Obtener datos históricos
             modules:
               - id: l
                 value:
@@ -52,7 +52,7 @@ value:
             expr: ''
             parallel: true
             skip_failure: true
-          - summary: Fetch outstanding periods
+          - summary: Obtener períodos adeudados
             modules:
               - id: m
                 value:
@@ -103,7 +103,7 @@ schema:
   properties:
     token:
       type: string
-      description: 'JWT token from webhook request. Generate one using: wmill script
+      description: 'Token JWT desde request de webhook. Generar uno usando: wmill script
         run f/ddjj/generate_test_jwt'
       default: GENERATE_TOKEN_FIRST_USING_f/ddjj/generate_test_jwt
   required:
