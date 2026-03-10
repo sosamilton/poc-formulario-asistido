@@ -56,51 +56,114 @@ def init_ddjj_mensual(user: Dict[str, Any], params: Dict[str, Any]) -> Dict[str,
     cuit = user["cuit"]
     
     # 1. Ejecutar workflow de DDJJ para obtener datos precargados desde APIs externas
+    # El workflow necesita un token JWT, generamos uno mock con los datos del usuario
+    import base64
+    
+    def base64url_encode(data):
+        """Codifica en base64url (formato JWT)"""
+        if isinstance(data, str):
+            data = data.encode('utf-8')
+        encoded = base64.urlsafe_b64encode(data).decode('utf-8')
+        # Remover padding '=' para formato JWT estándar
+        return encoded.rstrip('=')
+    
+    mock_token_payload = {
+        "identifier": cuit,
+        "cuit": cuit,
+        "fullname": user.get("nombre", ""),
+        "permissions": user.get("permissions", []),
+        "login": cuit
+    }
+    # Crear un token JWT mock en formato base64url correcto
+    header = base64url_encode('{"alg":"HS256","typ":"JWT"}')
+    payload = base64url_encode(json.dumps(mock_token_payload))
+    signature = base64url_encode('mock-signature')
+    mock_token = f"{header}.{payload}.{signature}"
+    
     try:
-        workflow_result = wmill.run_flow_sync(
+        print(f"[DEBUG] Ejecutando workflow f/ddjj/init_ddjj con token para CUIT: {cuit}")
+        print(f"[DEBUG] Token generado: {mock_token[:50]}...")
+        
+        # Ejecutar workflow de forma asíncrona
+        job_id = wmill.run_flow_async(
             "f/ddjj/init_ddjj",
             args={
-                "cuit": cuit,
-                "periodo": periodo
+                "token": mock_token
             }
         )
-        prefill_data = workflow_result.get("data", {})
-    except Exception as e:
-        print(f"Error ejecutando workflow DDJJ: {e}")
-        # Fallback: usar datos mínimos si falla la consulta a APIs externas
-        prefill_data = {
-            "cuit": cuit,
-            "razonSocial": user.get("nombre", ""),
-            "periodo": periodo
-        }
-    
-    # 2. Crear una nueva submission en Form.io con los datos precargados
-    formio_url = os.getenv("FORMIO_URL", "https://formio.mdsoluciones.ar")
-    form_name = "iibbSimple"  # Nombre del formulario configurado en Form.io
-    
-    try:
-        # Enviar datos precargados a Form.io para crear un borrador de submission
-        url = f"{formio_url}/{form_name}/submission"
-        data = json.dumps({"data": prefill_data}).encode('utf-8')
-        req = urllib.request.Request(
-            url,
-            data=data,
-            headers={'Content-Type': 'application/json'}
-        )
         
-        with urllib.request.urlopen(req) as response:
-            submission = json.loads(response.read().decode('utf-8'))
-            submission_id = submission.get("_id")
+        print(f"[DEBUG] Job iniciado con ID: {job_id}")
+        
+        # Esperar a que el job complete usando polling
+        import time
+        max_wait_time = 60
+        poll_interval = 1
+        elapsed_time = 0
+        
+        while elapsed_time < max_wait_time:
+            job_status = wmill.get_job(job_id)
+            job_type = job_status.get("type")
+            
+            print(f"[DEBUG] Estado del job: {job_type}, tiempo transcurrido: {elapsed_time}s")
+            
+            if job_type == "CompletedJob":
+                # Job completado exitosamente
+                workflow_result = job_status.get("result", {})
+                print(f"[DEBUG] Workflow ejecutado exitosamente. Resultado: {workflow_result}")
+                break
+            elif job_type == "QueuedJob" or job_type == "RunningJob":
+                # Job aún en ejecución, esperar
+                time.sleep(poll_interval)
+                elapsed_time += poll_interval
+            else:
+                # Job falló o estado desconocido
+                raise Exception(f"Job falló o tiene estado desconocido: {job_type}")
+        else:
+            raise Exception(f"Timeout esperando a que el job complete después de {max_wait_time}s")
+        
+        # El workflow devuelve los datos sin crear submission en Form.io
+        # La submission se creará solo cuando el usuario haga submit
+        formio_url = os.getenv("FORMIO_URL", "https://formio.mdsoluciones.ar")
+        form_name = "iibbSimple"
+        
+        periodos_adeudados = workflow_result.get("periodosAdeudados", [])
+        print(f"[DEBUG] Datos obtenidos del workflow: {workflow_result}")
+        
+        return {
+            "formUrl": f"{formio_url}/{form_name}",
+            "submissionId": None,  # No hay submission inicial
+            "prefillData": {
+                "cuit": workflow_result.get("cuit", cuit),
+                "razonSocial": user.get("nombre", ""),
+                "actividad": workflow_result.get("actividad", ""),
+                "periodoAdeclarar": periodos_adeudados[0] if periodos_adeudados else None,
+                "periodosAdeudados": workflow_result.get("periodosAdeudados", []),
+                "montoAnterior": workflow_result.get("montoAnterior")
+            },
+            "dynamicOptions": {
+                "periodoAdeclarar": [
+                    {"label": periodo, "value": periodo}
+                    for periodo in periodos_adeudados
+                ]
+            }
+        }
     except Exception as e:
-        print(f"Error conectando con Form.io: {e}")
-        submission_id = None
-    
-    # 3. Retornar URL del formulario y datos para que el frontend lo renderice
-    return {
-        "formUrl": f"{formio_url}/{form_name}",
-        "submissionId": submission_id,
-        "prefillData": prefill_data
-    }
+        print(f"[ERROR] Error ejecutando workflow DDJJ: {type(e).__name__}: {str(e)}")
+        import traceback
+        print(f"[ERROR] Traceback completo:\n{traceback.format_exc()}")
+        
+        # Fallback: devolver datos mínimos sin submission
+        formio_url = os.getenv("FORMIO_URL", "https://formio.mdsoluciones.ar")
+        form_name = "iibbSimple"
+        return {
+            "formUrl": f"{formio_url}/{form_name}",
+            "submissionId": None,
+            "prefillData": {
+                "cuit": cuit,
+                "razonSocial": user.get("nombre", ""),
+                "periodo": periodo
+            }
+        }
 
 
 def init_consulta_deuda(user: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:

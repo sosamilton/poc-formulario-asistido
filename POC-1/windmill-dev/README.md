@@ -352,17 +352,3 @@ wmill job get <job_id>
 5. **Secrets en variables de entorno** - No hardcodear credenciales
 
 ---
-
-## 🎯 Próximos Pasos
-
-- [ ] Implementar validación intermedia (`/ddjj/validate`)
-- [ ] Agregar firma digital de formularios
-- [ ] Implementar auditoría de acciones
-- [ ] Integrar con Keycloak real (actualmente mock)
-- [ ] Agregar tests automatizados
-- [ ] Implementar retry logic en consultas a APIs
-- [ ] Agregar monitoreo y alertas
-
----
-
-**Última actualización:** Marzo 2026

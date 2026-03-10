@@ -20,18 +20,12 @@ type SubmissionResult = {
 export async function main(data: SubmissionData): Promise<SubmissionResult> {
   const formioUrl = "https://formio.mdsoluciones.ar/";
   const formId = "69ac22b5c99310e3a822b518";
+  // Crear submission vacía solo con campos básicos para evitar recursividad
+  // Los demás campos se llenarán en el frontend con prefillData
   const submissionPayload = {
     data: {
       cuit: data.cuit,
       razonSocial: data.razonSocial,
-      actividad: data.actividad,
-      alicuota: data.alicuota,
-      montoAnterior: data.montoAnterior,
-      periodoADeclarar1: null, // El usuario seleccionará desde el dropdown
-      montoADeclarar: null, // El usuario completará este campo
-      // Almacenar períodos para población dinámica del select
-      _periodosAdeudados: data.periodosAdeudados,
-      _montoMinimo: data.montoMinimo,
     },
   };
 

@@ -76,25 +76,68 @@ value:
             expr: results.h.codigoActividad
         is_trigger: false
         path: f/ddjj/fetch_alicuota
-    - id: o
+    - id: result
       value:
-        type: script
+        type: rawscript
         input_transforms:
-          data:
+          cuit:
             type: javascript
-            expr: |-
-              {
-                "cuit": results.k?.cuit ?? "",
-                "razonSocial": results.h?.razonSocial ?? "",
-                "actividad": results.h?.actividad ?? "",
-                "regimen": results.h?.regimen ?? "",
-                "alicuota": results.n?.alicuota ?? 0,
-                "montoAnterior": results.l?.montoAnterior ?? null,
-                "periodosAdeudados": results.m?.periodosAdeudados ?? [],
-                "montoMinimo": 0
-              }
-        is_trigger: false
-        path: f/ddjj/create_formio_submission
+            expr: results.k?.cuit ?? ""
+          razonSocial:
+            type: javascript
+            expr: results.h?.razonSocial ?? ""
+          actividad:
+            type: javascript
+            expr: results.h?.actividad ?? ""
+          regimen:
+            type: javascript
+            expr: results.h?.regimen ?? ""
+          alicuota:
+            type: javascript
+            expr: results.n?.alicuota ?? 0
+          montoAnterior:
+            type: javascript
+            expr: results.l?.montoAnterior ?? null
+          periodosAdeudados:
+            type: javascript
+            expr: results.m?.periodosAdeudados ?? []
+        language: bun
+        content: |-
+          // Devolver datos directamente sin crear submission en Form.io
+          type Params = {
+            cuit: string;
+            razonSocial: string;
+            actividad: string;
+            regimen: string;
+            alicuota: number;
+            montoAnterior: number | null;
+            periodosAdeudados: string[];
+          }
+          
+          export async function main(
+            cuit: string,
+            razonSocial: string,
+            actividad: string,
+            regimen: string,
+            alicuota: number,
+            montoAnterior: number | null,
+            periodosAdeudados: string[]
+          ) {
+            console.log('[DEBUG] Parámetros recibidos:', { cuit, razonSocial, actividad, regimen, alicuota, montoAnterior, periodosAdeudados });
+            
+            const result = {
+              cuit,
+              razonSocial,
+              actividad,
+              regimen,
+              alicuota,
+              montoAnterior,
+              periodosAdeudados
+            };
+            
+            console.log('[DEBUG] Resultado a devolver:', result);
+            return result;
+          }
 schema:
   $schema: https://json-schema.org/draft/2020-12/schema
   type: object

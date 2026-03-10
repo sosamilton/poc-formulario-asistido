@@ -51,89 +51,84 @@ Este repositorio contiene **múltiples POCs (Proof of Concept)** para evaluar di
 
 ---
 
-## 🚀 POCs Implementados
+## 🚀 POCs en Evaluación
 
-### 1. **POC Principal: Form.io + Windmill + Frontend**
+Este repositorio está organizado en **POCs independientes**, cada uno con su propio stack completo y documentación.
 
-**Stack:** Form.io + Windmill + Mockoon + Keycloak
+### **POC-1: Form.io + Windmill + Frontend Svelte** 🔥 *En desarrollo activo*
+
+**Stack:** Form.io + Windmill + Mockoon + Frontend Svelte
+
+**Objetivo:**
+Evaluar la viabilidad de un ecosistema de formularios con precarga de datos desde backend, validaciones custom y valores dinámicos por usuario.
 
 **Características:**
-- ✅ Orquestación code-first con ejecución paralela
-- ✅ Formularios JSON Schema
-- ✅ Precarga automática de datos
-- ✅ Alta performance (~2s por flujo completo)
+- ✅ Orquestación de workflows con Windmill
+- ✅ Ejecución paralela de consultas (42% más rápido)
+- ✅ Precarga automática de datos desde APIs
+- ✅ Validaciones custom por usuario
+- ✅ Selects dinámicos según contexto
 
-**📂 Carpeta:** `windmill-dev/`  
-**� Documentación:** [windmill-dev/README.md](windmill-dev/README.md)
+**📂 Carpeta:** `POC-1/`  
+**📘 Documentación:** [POC-1/README.md](POC-1/README.md)  
+**🚀 Quick Start:** `cd POC-1 && docker-compose up -d`
+
+**Estado:** 🟡 En desarrollo - Resolviendo integración JWT + precarga de datos
 
 ---
 
-### 2. **POC Alternativa: n8n + Form.io**
+### **POC-2: SurveyJS + Endatix + Windmill** � *Planificado*
 
-**Stack:** n8n + Form.io + PostgreSQL + Redis
+**Stack:** SurveyJS Library + Endatix API (.NET) + Windmill + PostgreSQL
+
+**Objetivo:**
+Evaluar una solución enterprise con backend robusto (.NET) y features avanzadas (multitenancy, webhooks, SSO).
 
 **Características:**
-- ✅ UI visual para workflows (no-code/low-code)
-- ✅ 400+ integraciones nativas
-- ✅ Ideal para usuarios no técnicos
+- ✅ Backend .NET 10.0 maduro
+- ✅ Multitenancy nativo
+- ✅ Form versioning
+- ✅ Partial submissions
+- ✅ Webhooks y notificaciones
+- ✅ SSO (Keycloak, OAuth 2.0)
 
-**📂 Carpeta:** `n8n/`  
-**🚀 Quick Start:** `cd n8n && docker-compose up -d`
+**📂 Carpeta:** `surveyJS/` (documentación)  
+**� Documentación:** [surveyJS/README.md](surveyJS/README.md)
+
+**Estado:** 📝 Documentado - Pendiente de implementación
 
 ---
 
-### 3. **POC Enterprise: Orbeon Forms**
+### **POC-3: SurveyJS + Windmill Custom Backend** 📋 *Planificado*
 
-**Stack:** Orbeon Forms + PostgreSQL + Tomcat
+**Stack:** SurveyJS Library + Windmill (backend custom) + PostgreSQL
+
+**Objetivo:**
+Evaluar una solución simplificada usando solo Windmill como backend, sin servicios externos adicionales.
 
 **Características:**
-- ✅ Diseñador visual WYSIWYG
-- ✅ XForms estándar W3C
-- ✅ Workflow y versionado integrado
-- ✅ Solución enterprise completa
+- ✅ Todo en Windmill (workflows + backend)
+- ✅ Stack familiar (Python/TypeScript)
+- ✅ PostgreSQL simple (solo submissions)
+- ✅ Control total sobre lógica
+- ✅ Aprovecha workflows existentes
 
-**📂 Carpeta:** `orbeon/`  
-**🚀 Quick Start:** `cd orbeon && docker-compose up -d`
+**📂 Carpeta:** `surveyJS/` (documentación)  
+**📘 Documentación:** [surveyJS/README.md](surveyJS/README.md)
+
+**Estado:** 📝 Documentado - Pendiente de implementación
 
 ---
 
-### 4. **POC Open Source: OpenForm**
+### **Otros POCs Explorados** 🔍
 
-**Stack:** OpenForm + Celery + PostgreSQL + Redis
+Estos POCs fueron evaluados previamente pero no están en desarrollo activo:
 
-**Características:**
-- ✅ Plataforma gubernamental holandesa
-- ✅ APIs REST completas
-- ✅ Procesamiento asíncrono
-- ✅ Altamente configurable
-
-**📂 Carpeta:** `openform/`
-
----
-
-### 5. **POC Feedback: Formbricks**
-
-**Stack:** Formbricks + PostgreSQL
-
-**Características:**
-- ✅ Encuestas y feedback de usuarios
-- ✅ NPS y métricas de experiencia
-- ✅ Análisis de respuestas
-
-**📂 Carpeta:** `formbricks/`
-
----
-
-### 6. **POC Low-Code: Corteza**
-
-**Stack:** Corteza + PostgreSQL
-
-**Características:**
-- ✅ Constructor de aplicaciones sin código
-- ✅ Workflows visuales
-- ✅ CRM integrado
-
-**📂 Carpeta:** `corteza/`
+- **n8n + Form.io** - Orquestación visual no-code (`n8n/`)
+- **Orbeon Forms** - Solución enterprise XForms (`orbeon/`)
+- **OpenForm** - Plataforma gubernamental holandesa (`openform/`)
+- **Formbricks** - Encuestas y feedback (`formbricks/`)
+- **Corteza** - Constructor low-code (`corteza/`)
 
 ---
 
@@ -204,14 +199,13 @@ Cada POC tiene su propia documentación detallada en su carpeta:
 
 ### Por POC
 
-- 📘 [POC 1: Windmill + Form.io](windmill-dev/README.md) - Quick start, testing, desarrollo
-- 📗 [APIs Mock con Mockoon](apis/README.md) - Endpoints, configuración, testing
-- 📙 [Arquitectura Frontend](formio-front.md) - Integración Form.io + Windmill
+- 📘 [POC-1: Form.io + Windmill + Svelte](POC-1/README.md) - Arquitectura, quick start, testing
+- 📗 [POC-2 y POC-3: SurveyJS](surveyJS/README.md) - Comparación de arquitecturas con SurveyJS
+- � [APIs Mock con Mockoon](apis/README.md) - Endpoints, configuración, testing
 
 ### Guías Técnicas
 
-- 📄 [Implementación DDJJ](IMPLEMENTACION_DDJJ.md) - Caso de uso completo
-- 📖 [Desarrollo con Windmill](windmill-dev/DESARROLLO_WINDMILL.md) - Guía técnica detallada
+- 📄 [Desarrollo con Windmill](POC-1/windmill-dev/README.md) - Guía técnica detallada del POC-1
 
 ---
 
