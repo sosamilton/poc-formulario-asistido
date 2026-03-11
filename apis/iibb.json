@@ -1,1 +1,307 @@
-{"uuid":"c221e246-f13d-4dc2-bc14-f573827a1d9e","lastMigration":33,"name":"iibb","endpointPrefix":"","latency":0,"port":3001,"hostname":"0.0.0.0","folders":[],"routes":[{"uuid":"dcfcf19d-31c7-4f66-907b-6d02af8d3ef7","type":"http","documentation":"DDJJ - Get padron data by CUIT","method":"get","endpoint":"api/padron/:cuit","responses":[{"uuid":"5205de40-5112-4d77-800f-478fdde8f470","body":"{\n  \"cuit\": \"{{urlParam 'cuit'}}\",\n  \"razonSocial\": \"{{faker 'company.name'}}\",\n  \"actividad\": \"Servicios profesionales\",\n  \"codigoActividad\": \"620\",\n  \"regimen\": \"CM\"\n}","latency":0,"statusCode":200,"label":"CUIT 20345534234","headers":[],"bodyType":"INLINE","filePath":"","databucketID":"","sendFileAsBody":false,"rules":[{"target":"params","modifier":"cuit","value":"20345534234","invert":false,"operator":"equals"}],"rulesOperator":"OR","disableTemplating":false,"fallbackTo404":false,"default":false,"crudKey":"id","callbacks":[]},{"uuid":"279aef87-ac04-43f5-9638-5fab9112295c","body":"{\n  \"cuit\": \"{{urlParam 'cuit'}}\",\n  \"razonSocial\": \"{{faker 'company.name'}}\",\n  \"actividad\": \"Comercio minorista\",\n  \"codigoActividad\": \"741\",\n  \"regimen\": \"LOCAL\"\n}","latency":0,"statusCode":200,"label":"Default padron response","headers":[],"bodyType":"INLINE","filePath":"","databucketID":"","sendFileAsBody":false,"rules":[],"rulesOperator":"OR","disableTemplating":false,"fallbackTo404":false,"default":true,"crudKey":"id","callbacks":[]}],"responseMode":null,"streamingMode":null,"streamingInterval":0},{"uuid":"fd9d945d-673c-4e63-a3ef-9eaa7a3f6b05","type":"http","documentation":"DDJJ - Get alicuota by activity code","method":"get","endpoint":"api/actividad/:codigoActividad","responses":[{"uuid":"f363bd15-27be-46c0-aa03-a57993f75037","body":"{\n  \"codigoActividad\": \"620\",\n  \"descripcion\": \"Servicios profesionales\",\n  \"alicuota\": 3.5\n}","latency":0,"statusCode":200,"label":"Activity 620","headers":[],"bodyType":"INLINE","filePath":"","databucketID":"","sendFileAsBody":false,"rules":[{"target":"params","modifier":"codigoActividad","value":"620","invert":false,"operator":"equals"}],"rulesOperator":"OR","disableTemplating":false,"fallbackTo404":false,"default":false,"crudKey":"id","callbacks":[]},{"uuid":"1ccb1618-e652-4d3c-991e-724da942c404","body":"{\n  \"codigoActividad\": \"741\",\n  \"descripcion\": \"Comercio minorista\",\n  \"alicuota\": 2.5\n}","latency":0,"statusCode":200,"label":"Activity 741","headers":[],"bodyType":"INLINE","filePath":"","databucketID":"","sendFileAsBody":false,"rules":[{"target":"params","modifier":"codigoActividad","value":"741","invert":false,"operator":"equals"}],"rulesOperator":"OR","disableTemplating":false,"fallbackTo404":false,"default":false,"crudKey":"id","callbacks":[]},{"uuid":"13bfe0cf-c2bd-44c4-92ef-312592d86a19","body":"{\n  \"codigoActividad\": \"{{urlParam 'codigoActividad'}}\",\n  \"descripcion\": \"Actividad general\",\n  \"alicuota\": 3.0\n}","latency":0,"statusCode":200,"label":"Default activity","headers":[],"bodyType":"INLINE","filePath":"","databucketID":"","sendFileAsBody":false,"rules":[],"rulesOperator":"OR","disableTemplating":false,"fallbackTo404":false,"default":true,"crudKey":"id","callbacks":[]}],"responseMode":null,"streamingMode":null,"streamingInterval":0},{"uuid":"c7a36a63-9aef-4ebd-a854-bced22a4b6e3","type":"http","documentation":"DDJJ - Get historical data by CUIT","method":"get","endpoint":"api/historial/:cuit","responses":[{"uuid":"96d9d6b1-4560-40ee-b70a-0ac357538e73","body":"{\n  \"cuit\": \"20345534234\",\n  \"montoAnterior\": 1500,\n  \"fechaUltimaDDJJ\": \"2026-01-15\"\n}","latency":0,"statusCode":200,"label":"CUIT with previous DDJJ","headers":[],"bodyType":"INLINE","filePath":"","databucketID":"","sendFileAsBody":false,"rules":[{"target":"params","modifier":"cuit","value":"20345534234","invert":false,"operator":"equals"}],"rulesOperator":"OR","disableTemplating":false,"fallbackTo404":false,"default":false,"crudKey":"id","callbacks":[]},{"uuid":"5f62695b-da90-45b2-84ab-8be116195df3","body":"{\n  \"cuit\": \"{{urlParam 'cuit'}}\",\n  \"montoAnterior\": null,\n  \"fechaUltimaDDJJ\": null\n}","latency":0,"statusCode":200,"label":"CUIT without previous DDJJ","headers":[],"bodyType":"INLINE","filePath":"","databucketID":"","sendFileAsBody":false,"rules":[],"rulesOperator":"OR","disableTemplating":false,"fallbackTo404":false,"default":true,"crudKey":"id","callbacks":[]}],"responseMode":null,"streamingMode":null,"streamingInterval":0},{"uuid":"bdfa8290-5a1b-4658-acfb-10436a094d77","type":"http","documentation":"DDJJ - Get outstanding periods by CUIT","method":"get","endpoint":"api/periodos-adeudados/:cuit","responses":[{"uuid":"c7b687aa-4d68-40cd-b454-fca090c9fd1a","body":"{\n  \"cuit\": \"{{urlParam 'cuit'}}\",\n  \"periodosAdeudados\": [\"2025-11\", \"2025-12\", \"2026-01\", \"2026-02\"]\n}","latency":0,"statusCode":200,"label":"Outstanding periods","headers":[],"bodyType":"INLINE","filePath":"","databucketID":"","sendFileAsBody":false,"rules":[],"rulesOperator":"OR","disableTemplating":false,"fallbackTo404":false,"default":true,"crudKey":"id","callbacks":[]}],"responseMode":null,"streamingMode":null,"streamingInterval":0}],"rootChildren":[{"type":"route","uuid":"dcfcf19d-31c7-4f66-907b-6d02af8d3ef7"},{"type":"route","uuid":"fd9d945d-673c-4e63-a3ef-9eaa7a3f6b05"},{"type":"route","uuid":"c7a36a63-9aef-4ebd-a854-bced22a4b6e3"},{"type":"route","uuid":"bdfa8290-5a1b-4658-acfb-10436a094d77"}],"proxyMode":false,"proxyHost":"","proxyRemovePrefix":false,"tlsOptions":{"enabled":false,"type":"CERT","pfxPath":"","certPath":"","keyPath":"","caPath":"","passphrase":""},"cors":true,"headers":[{"key":"Content-Type","value":"application/json"},{"key":"Access-Control-Allow-Origin","value":"*"},{"key":"Access-Control-Allow-Methods","value":"GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"},{"key":"Access-Control-Allow-Headers","value":"Content-Type, Origin, Accept, Authorization, Content-Length, X-Requested-With"}],"proxyReqHeaders":[{"key":"","value":""}],"proxyResHeaders":[{"key":"","value":""}],"data":[],"callbacks":[]}
+{
+    "uuid": "c221e246-f13d-4dc2-bc14-f573827a1d9e",
+    "lastMigration": 33,
+    "name": "iibb",
+    "endpointPrefix": "",
+    "latency": 0,
+    "port": 3001,
+    "hostname": "0.0.0.0",
+    "folders": [],
+    "routes": [
+        {
+            "uuid": "dcfcf19d-31c7-4f66-907b-6d02af8d3ef7",
+            "type": "http",
+            "documentation": "DDJJ - Get padron data by CUIT",
+            "method": "get",
+            "endpoint": "api/padron/:cuit",
+            "responses": [
+                {
+                    "uuid": "5205de40-5112-4d77-800f-478fdde8f470",
+                    "body": "{\n  \"cuit\": \"{{urlParam 'cuit'}}\",\n  \"razonSocial\": \"{{faker 'company.name'}}\",\n  \"actividad\": \"Servicios profesionales\",\n  \"codigoActividad\": \"620\",\n  \"regimen\": \"CM\"\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "CUIT 20345534234",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "params",
+                            "modifier": "cuit",
+                            "value": "20345534234",
+                            "invert": false,
+                            "operator": "equals"
+                        }
+                    ],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false,
+                    "crudKey": "id",
+                    "callbacks": []
+                },
+                {
+                    "uuid": "279aef87-ac04-43f5-9638-5fab9112295c",
+                    "body": "{\n  \"cuit\": \"{{urlParam 'cuit'}}\",\n  \"razonSocial\": \"{{faker 'company.name'}}\",\n  \"actividad\": \"Comercio minorista\",\n  \"codigoActividad\": \"741\",\n  \"regimen\": \"LOCAL\"\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Default padron response",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true,
+                    "crudKey": "id",
+                    "callbacks": []
+                }
+            ],
+            "responseMode": null,
+            "streamingMode": null,
+            "streamingInterval": 0
+        },
+        {
+            "uuid": "fd9d945d-673c-4e63-a3ef-9eaa7a3f6b05",
+            "type": "http",
+            "documentation": "DDJJ - Get alicuota by activity code",
+            "method": "get",
+            "endpoint": "api/actividad/:codigoActividad",
+            "responses": [
+                {
+                    "uuid": "f363bd15-27be-46c0-aa03-a57993f75037",
+                    "body": "{\n  \"codigoActividad\": \"620\",\n  \"descripcion\": \"Servicios profesionales\",\n  \"alicuota\": 3.5\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Activity 620",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "params",
+                            "modifier": "codigoActividad",
+                            "value": "620",
+                            "invert": false,
+                            "operator": "equals"
+                        }
+                    ],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false,
+                    "crudKey": "id",
+                    "callbacks": []
+                },
+                {
+                    "uuid": "1ccb1618-e652-4d3c-991e-724da942c404",
+                    "body": "{\n  \"codigoActividad\": \"741\",\n  \"descripcion\": \"Comercio minorista\",\n  \"alicuota\": 2.5\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Activity 741",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "params",
+                            "modifier": "codigoActividad",
+                            "value": "741",
+                            "invert": false,
+                            "operator": "equals"
+                        }
+                    ],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false,
+                    "crudKey": "id",
+                    "callbacks": []
+                },
+                {
+                    "uuid": "13bfe0cf-c2bd-44c4-92ef-312592d86a19",
+                    "body": "{\n  \"codigoActividad\": \"{{urlParam 'codigoActividad'}}\",\n  \"descripcion\": \"Actividad general\",\n  \"alicuota\": 3.0\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Default activity",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true,
+                    "crudKey": "id",
+                    "callbacks": []
+                }
+            ],
+            "responseMode": null,
+            "streamingMode": null,
+            "streamingInterval": 0
+        },
+        {
+            "uuid": "c7a36a63-9aef-4ebd-a854-bced22a4b6e3",
+            "type": "http",
+            "documentation": "DDJJ - Get historical data by CUIT",
+            "method": "get",
+            "endpoint": "api/historial/:cuit",
+            "responses": [
+                {
+                    "uuid": "96d9d6b1-4560-40ee-b70a-0ac357538e73",
+                    "body": "{\n  \"cuit\": \"20345534234\",\n  \"montoAnterior\": 1500,\n  \"fechaUltimaDDJJ\": \"2026-01-15\"\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "CUIT with previous DDJJ",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "params",
+                            "modifier": "cuit",
+                            "value": "20345534234",
+                            "invert": false,
+                            "operator": "equals"
+                        }
+                    ],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false,
+                    "crudKey": "id",
+                    "callbacks": []
+                },
+                {
+                    "uuid": "5f62695b-da90-45b2-84ab-8be116195df3",
+                    "body": "{\n  \"cuit\": \"{{urlParam 'cuit'}}\",\n  \"montoAnterior\": null,\n  \"fechaUltimaDDJJ\": null\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "CUIT without previous DDJJ",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true,
+                    "crudKey": "id",
+                    "callbacks": []
+                }
+            ],
+            "responseMode": null,
+            "streamingMode": null,
+            "streamingInterval": 0
+        },
+        {
+            "uuid": "bdfa8290-5a1b-4658-acfb-10436a094d77",
+            "type": "http",
+            "documentation": "DDJJ - Get outstanding periods by CUIT",
+            "method": "get",
+            "endpoint": "api/periodos-adeudados/:cuit",
+            "responses": [
+                {
+                    "uuid": "c7b687aa-4d68-40cd-b454-fca090c9fd1a",
+                    "body": "{\n  \"cuit\": \"{{urlParam 'cuit'}}\",\n  \"periodosAdeudados\": [\"2025-11\", \"2025-12\", \"2026-01\", \"2026-02\"]\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Outstanding periods",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true,
+                    "crudKey": "id",
+                    "callbacks": []
+                }
+            ],
+            "responseMode": null,
+            "streamingMode": null,
+            "streamingInterval": 0
+        }
+    ],
+    "rootChildren": [
+        {
+            "type": "route",
+            "uuid": "dcfcf19d-31c7-4f66-907b-6d02af8d3ef7"
+        },
+        {
+            "type": "route",
+            "uuid": "fd9d945d-673c-4e63-a3ef-9eaa7a3f6b05"
+        },
+        {
+            "type": "route",
+            "uuid": "c7a36a63-9aef-4ebd-a854-bced22a4b6e3"
+        },
+        {
+            "type": "route",
+            "uuid": "bdfa8290-5a1b-4658-acfb-10436a094d77"
+        }
+    ],
+    "proxyMode": false,
+    "proxyHost": "",
+    "proxyRemovePrefix": false,
+    "tlsOptions": {
+        "enabled": false,
+        "type": "CERT",
+        "pfxPath": "",
+        "certPath": "",
+        "keyPath": "",
+        "caPath": "",
+        "passphrase": ""
+    },
+    "cors": true,
+    "headers": [
+        {
+            "key": "Content-Type",
+            "value": "application/json"
+        },
+        {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+        },
+        {
+            "key": "Access-Control-Allow-Methods",
+            "value": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"
+        },
+        {
+            "key": "Access-Control-Allow-Headers",
+            "value": "Content-Type, Origin, Accept, Authorization, Content-Length, X-Requested-With"
+        }
+    ],
+    "proxyReqHeaders": [
+        {
+            "key": "",
+            "value": ""
+        }
+    ],
+    "proxyResHeaders": [
+        {
+            "key": "",
+            "value": ""
+        }
+    ],
+    "data": [],
+    "callbacks": []
+}
