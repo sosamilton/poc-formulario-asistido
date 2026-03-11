@@ -9,10 +9,12 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    environment:
-      - VITE_AUTH_MODE=mock
-      - VITE_WINDMILL_WORKSPACE=arba
-      - VITE_FORMIO_URL=https://formio.mdsoluciones.ar
+    env_file: .env.example
+    # environment:
+    #   - VITE_WINDMILL_URL=https://windmill.mdsoluciones.ar
+    #   - VITE_AUTH_MODE=mock
+    #   - VITE_WINDMILL_WORKSPACE=arba
+    #   - VITE_FORMIO_URL=https://formio.mdsoluciones.ar
     restart: unless-stopped
     networks:
       - iibb-network

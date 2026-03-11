@@ -1,0 +1,9 @@
+services:
+  mockoon:
+    image: mockoon/cli:latest
+    command: ["--data", "/data/iibb.json", "--port", "3001", "--hostname", "0.0.0.0", "--daemon-off"]
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./iibb.json:/data/iibb.json:ro
+    restart: unless-stopped
