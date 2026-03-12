@@ -1,0 +1,24 @@
+summary: Ejecutar hooks en secuencia
+description: Ejecuta una lista de hooks (scripts) en orden con contexto compartido
+kind: script
+language: bun
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    hooks:
+      type: array
+      description: Lista de hooks a ejecutar
+      items:
+        type: object
+        properties:
+          path:
+            type: string
+          args:
+            type: object
+    context:
+      type: object
+      description: Contexto compartido para todos los hooks
+  required:
+    - hooks
+    - context
