@@ -1,0 +1,23 @@
+summary: API - Inicializar formulario
+description: Endpoint para inicializar un formulario con datos precargados
+kind: script
+language: python3
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    slug:
+      type: string
+      description: Slug del formulario
+    created_by:
+      type: string
+      description: Usuario que inicia el formulario
+      default: anonymous
+    version:
+      type: integer
+      description: Versión específica del formulario
+    initial_data:
+      type: object
+      description: Datos iniciales
+  required:
+    - slug

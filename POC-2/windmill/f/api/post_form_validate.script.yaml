@@ -1,0 +1,20 @@
+summary: API - Validar formulario
+description: Endpoint para validar datos de formulario
+kind: script
+language: python3
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    slug:
+      type: string
+      description: Slug del formulario
+    data:
+      type: object
+      description: Datos a validar
+    version:
+      type: integer
+      description: Versión del formulario
+  required:
+    - slug
+    - data
