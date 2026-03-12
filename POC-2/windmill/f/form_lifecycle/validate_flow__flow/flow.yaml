@@ -1,0 +1,109 @@
+summary: Validate form data workflow
+description: Validates form data against schema and business rules
+
+value:
+  modules:
+    - id: get_runtime
+      value:
+        type: script
+        path: f/formularios/forms/get_runtime
+        input_transforms:
+          slug:
+            type: javascript
+            expr: flow_input.slug
+          version:
+            type: javascript
+            expr: flow_input.version
+
+    - id: validate_schema
+      value:
+        type: script
+        path: hub/3930/deno/inline_script
+        content: |
+          export async function main(schema: any, data: any) {
+            const errors: any[] = [];
+            
+            if (!schema || !schema.pages) {
+              return { valid: true, errors: [] };
+            }
+            
+            for (const page of schema.pages) {
+              for (const element of page.elements || []) {
+                if (element.isRequired && !data[element.name]) {
+                  errors.push({
+                    field: element.name,
+                    message: `${element.title || element.name} es requerido`
+                  });
+                }
+              }
+            }
+            
+            return {
+              valid: errors.length === 0,
+              errors: errors
+            };
+          }
+        input_transforms:
+          schema:
+            type: javascript
+            expr: results.get_runtime.schema
+          data:
+            type: javascript
+            expr: flow_input.data
+
+    - id: execute_validation_hooks
+      value:
+        type: script
+        path: f/formularios/forms/execute_hooks
+        input_transforms:
+          hooks:
+            type: javascript
+            expr: |
+              results.get_runtime.config?.hooks?.validate || []
+          context:
+            type: javascript
+            expr: |
+              ({
+                form_id: results.get_runtime.form_id,
+                slug: results.get_runtime.slug,
+                version: results.get_runtime.version,
+                data: flow_input.data
+              })
+        skip_if:
+          type: javascript
+          expr: |
+            !results.validate_schema.valid
+
+    - id: merge_validation_results
+      value:
+        type: script
+        path: hub/3930/deno/inline_script
+        content: |
+          export async function main(schema_validation: any, hook_results: any) {
+            const allErrors = [...(schema_validation.errors || [])];
+            
+            if (hook_results?.results) {
+              for (const result of hook_results.results) {
+                if (!result.success) {
+                  allErrors.push({
+                    field: 'general',
+                    message: result.error
+                  });
+                } else if (result.result?.errors) {
+                  allErrors.push(...result.result.errors);
+                }
+              }
+            }
+            
+            return {
+              valid: allErrors.length === 0,
+              errors: allErrors
+            };
+          }
+        input_transforms:
+          schema_validation:
+            type: javascript
+            expr: results.validate_schema
+          hook_results:
+            type: javascript
+            expr: results.execute_validation_hooks || null
