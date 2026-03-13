@@ -1,7 +1,7 @@
 summary: Obtener formulario por slug
 description: Obtiene la definición de un formulario usando su slug
+lock: '!inline f/forms/get_form.script.lock'
 kind: script
-language: bun
 schema:
   $schema: https://json-schema.org/draft/2020-12/schema
   type: object
