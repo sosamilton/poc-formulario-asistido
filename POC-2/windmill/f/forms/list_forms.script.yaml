@@ -1,0 +1,8 @@
+summary: Listar todos los formularios
+description: Obtiene la lista completa de formularios ordenados por fecha de creación
+lock: '!inline f/forms/list_forms.script.lock'
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties: {}
