@@ -1,2 +1,17 @@
 version: v2
-locks: {}
+locks:
+  f/api/get_form_init: 4b4a94f47e702184f309b5a2b7fde04ead3af9ee53666544119eed7099cc64ca
+  f/api/post_form_submit: f5deb7a26093d5b26155958d469940f74d658f7090e6373e5009427b96e02dcd
+  f/api/post_form_validate: fd95502237035ea5abc10a6e811e1fb207180b420715461d9d8481a4705c8774
+  f/forms/create_form: 505930051469c98cf61c3ce7f3bb2438e29de4006a574022f732431388c90688
+  f/forms/delete_form: f78a2fdfef4eba5ed1a7b8dfa44bc83103b08a93e9ca3ee89958866f5c901bc9
+  f/forms/execute_hooks: e67211f92968ffe2d1798e386c3c6ffef61483c32b200b384d8d2183b8d8027f
+  f/forms/get_form: 6d93b652c5b7ec993b435b0b7169c4f6d422ebb156830e1aeb704d66222b4d70
+  f/forms/get_runtime: a392b7e1d60e33c764aacfed619599311017c6b71aefa521b04802342412ec09
+  f/forms/list_forms: 2211e59da37517a1a700477b56f07a266850dbfe10c27e415b86f19ac875eec5
+  f/forms/save_submission: 26da0de1e21830ec37398e0554a1b099791454e40bed3d1f1939c0233c773de3
+  f/forms/update_form: 2bd83ed085272c098c43053122269e6f1403613c1b0afa678ef5db7faba022af
+  f/plugins/ddjj/fetch_padron: 95af53e10684a67358a4bc704bbd9809ca54586bc5381912aa7d4fec40dee208
+  f/plugins/ddjj/fetch_periodos: 121125c25553a750e012b29edafe007bb7a0301fa20e820e781ff13dca3fbbe5
+  f/plugins/ddjj/send_to_backend: b6f6789bb1cad31705901788b8520bc55dd507e0fbd63150b176b5b6f00fdefa
+  f/plugins/ddjj/validate_business_rules: 78077bfb39fe1c437abab7721a5751574cb66317ff0d9073952b0ac299bccda7
