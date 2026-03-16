@@ -1,26 +1,26 @@
 summary: API - Enviar formulario
 description: Endpoint para enviar formulario completo
+lock: '!inline f/api/post_form_submit.script.lock'
 kind: script
-language: python3
 schema:
   $schema: https://json-schema.org/draft/2020-12/schema
   type: object
   properties:
-    slug:
-      type: string
-      description: Slug del formulario
-    data:
-      type: object
-      description: Datos del formulario
-    submission_id:
-      type: string
-      description: ID de submission existente
     version:
       type: integer
       description: Versión del formulario
+    data:
+      type: object
+      description: Datos del formulario
     metadata:
       type: object
       description: Metadata adicional
+    slug:
+      type: string
+      description: Slug del formulario
+    submission_id:
+      type: string
+      description: ID de submission existente
   required:
     - slug
     - data
