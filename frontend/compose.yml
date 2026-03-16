@@ -6,11 +6,11 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        VITE_WINDMILL_URL: https://windmill.mdsoluciones.ar
-        VITE_AUTH_MODE: mock
-        VITE_WINDMILL_WORKSPACE: arba
+        NEXT_PUBLIC_WINDMILL_URL: https://windmill.mdsoluciones.ar
+        NEXT_PUBLIC_AUTH_MODE: mock
+        NEXT_PUBLIC_WINDMILL_WORKSPACE: arba
     ports:
-      - "3011:80"
+      - "3011:3000"
     restart: unless-stopped
     networks:
       - iibb-network

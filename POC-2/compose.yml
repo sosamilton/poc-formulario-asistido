@@ -1,0 +1,6 @@
+name: poc1-stack
+
+include:
+  - path: ../windmill/compose.yml
+  - path: ../frontend/compose.yml
+  - path: ../apis/compose.yml

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { SurveyCreatorComponent, SurveyCreator } from 'survey-creator-react'
-import * as wmill from 'windmill-client'
 import 'survey-core/defaultV2.min.css'
 import 'survey-creator-core/survey-creator-core.min.css'
 import './index.css'
@@ -39,28 +38,45 @@ const App = () => {
         console.log('🔍 === DEBUG API CALL ===')
         console.log('🔍 Script path:', path)
         console.log('🔍 Params:', JSON.stringify(params, null, 2))
-        
+
         try {
-            // Usar fetch directo - la raw app ya tiene contexto autenticado
-            const url = `https://windmill.mdsoluciones.ar/api/w/formularios/jobs/run_wait_result/p/${path}`
+            const base = (window as any).WMILL_URL || window.location.origin
+            const apiBase = `${base}/api`
+            const detectedWorkspace =
+                (window as any).WMILL_WORKSPACE ||
+                (() => {
+                    try {
+                        const m = window.location.pathname.match(/\/(?:apps|w)\/(\w+)/)
+                        return m?.[1]
+                    } catch {
+                        return undefined
+                    }
+                })() ||
+                'formularios'
+
+            const url = `${apiBase}/w/${detectedWorkspace}/jobs/run_wait_result/p/${path}`
             console.log('🔍 Full URL:', url)
-            
+
             const response = await fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify(params)
             })
-            
+
             console.log('🔍 Response status:', response.status)
-            
+
             if (!response.ok) {
                 const errorText = await response.text()
                 console.log('❌ Error response:', errorText)
                 throw new Error(`API Error ${response.status}: ${errorText}`)
             }
-            
+
+            const ct = response.headers.get('content-type') || ''
+            if (!ct.includes('application/json')) {
+                const text = await response.text()
+                throw new Error(`Respuesta no JSON (posible login o proxy): ${text.slice(0, 200)}`)
+            }
             const result = await response.json()
             console.log('✅ Response data:', result)
             return result
