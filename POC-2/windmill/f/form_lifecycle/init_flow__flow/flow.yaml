@@ -1,67 +1,213 @@
-summary: Initialize form workflow
-description: Loads form schema, executes preload hooks, and creates draft submission
+summary: Inicializar flujo de formulario DDJJ con token JWT
+description: |-
+  Flujo completo para inicializar formulario DDJJ:
+  1. Parsear token JWT para extraer CUIT
+  2. Obtener formulario por slug hardcodeado
+  3. Obtener runtime (JSON schema) del formulario
+  4. Ejecutar consultas paralelas a APIs (padrón, historial, períodos, alícuota)
+  5. Transformar el JSON del formulario con datos precargados
+  6. Crear submission con datos iniciales
 
 value:
   modules:
-    - id: get_runtime
+    - id: parse_jwt
+      summary: Extraer CUIT del token JWT
       value:
         type: script
-        path: f/formularios/forms/get_runtime
+        path: f/plugins/ddjj/parse_jwt
+        input_transforms:
+          token:
+            type: javascript
+            expr: flow_input.token
+
+    - id: set_slug
+      summary: Hardcodear slug del formulario
+      value:
+        type: rawscript
+        language: bun
+        content: |-
+          export async function main() {
+            return { slug: "ddjj-iibb-simplificado" };
+          }
+
+    - id: get_form
+      summary: Obtener formulario por slug
+      value:
+        type: script
+        path: f/forms/get_form
         input_transforms:
           slug:
             type: javascript
-            expr: flow_input.slug
-          version:
-            type: javascript
-            expr: flow_input.version
+            expr: results.set_slug.slug
 
-    - id: execute_preload_hooks
+    - id: get_runtime
+      summary: Obtener runtime (schema JSON) del formulario
       value:
         type: script
-        path: f/formularios/forms/execute_hooks
+        path: f/forms/get_runtime
         input_transforms:
-          hooks:
+          slug:
             type: javascript
-            expr: |
-              results.get_runtime.config?.hooks?.preload || []
-          context:
-            type: javascript
-            expr: |
-              ({
-                form_id: results.get_runtime.form_id,
-                slug: results.get_runtime.slug,
-                version: results.get_runtime.version,
-                created_by: flow_input.created_by
-              })
+            expr: results.set_slug.slug
 
-    - id: merge_preload_data
+    - id: parallel_fetch
+      summary: Obtener datos en paralelo (padrón, historial, períodos)
+      value:
+        type: branchall
+        branches:
+          - summary: Obtener datos del padrón
+            modules:
+              - id: fetch_padron
+                value:
+                  type: script
+                  path: f/plugins/ddjj/fetch_padron
+                  input_transforms:
+                    cuit:
+                      type: javascript
+                      expr: results.parse_jwt.cuit
+            parallel: true
+            skip_failure: true
+
+          - summary: Obtener datos históricos
+            modules:
+              - id: fetch_historial
+                value:
+                  type: script
+                  path: f/plugins/ddjj/fetch_historial
+                  input_transforms:
+                    cuit:
+                      type: javascript
+                      expr: results.parse_jwt.cuit
+            parallel: true
+            skip_failure: true
+
+          - summary: Obtener períodos adeudados
+            modules:
+              - id: fetch_periodos
+                value:
+                  type: script
+                  path: f/plugins/ddjj/fetch_periodos_adeudados
+                  input_transforms:
+                    cuit:
+                      type: javascript
+                      expr: results.parse_jwt.cuit
+            parallel: true
+            skip_failure: true
+        parallel: true
+
+    - id: fetch_alicuota
+      summary: Obtener alícuota por código de actividad
       value:
         type: script
-        path: hub/3930/deno/inline_script
-        content: |
-          export async function main(preload_results: any, initial_data: any) {
-            const merged = { ...(initial_data || {}) };
+        path: f/plugins/ddjj/fetch_alicuota
+        input_transforms:
+          codigoActividad:
+            type: javascript
+            expr: results.fetch_padron.codigoActividad
+
+    - id: transform_schema
+      summary: Transformar JSON del formulario con datos precargados
+      value:
+        type: rawscript
+        language: bun
+        content: |-
+          type SchemaJson = {
+            title?: string;
+            logoPosition?: string;
+            pages?: Array<{
+              name: string;
+              elements: Array<any>;
+            }>;
+            [key: string]: any;
+          };
+
+          export async function main(
+            schema: SchemaJson,
+            cuit: string,
+            razonSocial: string,
+            actividad: string,
+            codigoActividad: string,
+            periodosAdeudados: string[],
+            alicuota: number
+          ) {
+            const transformedSchema = JSON.parse(JSON.stringify(schema));
             
-            for (const result of preload_results.results || []) {
-              if (result.success && result.result?.data) {
-                Object.assign(merged, result.result.data);
-              }
+            if (!transformedSchema.pages || transformedSchema.pages.length === 0) {
+              throw new Error("Schema no tiene páginas definidas");
             }
-            
-            return merged;
+
+            const page = transformedSchema.pages[0];
+            if (!page.elements) {
+              page.elements = [];
+            }
+
+            // Actualizar el HTML del info_contribuyente
+            const infoElement = page.elements.find((el: any) => el.name === "info_contribuyente");
+            if (infoElement && infoElement.type === "html") {
+              infoElement.html = `<div class='contribuyente-info'><div class='info-row'><span class='label'>CUIT</span><span class='value'>${cuit} - ${razonSocial}</span></div><div class='info-row'><span class='label'>Actividad</span><span class='value'>${actividad} (${codigoActividad})</span></div></div>`;
+            }
+
+            // Actualizar el dropdown de períodos con los períodos adeudados
+            const periodoElement = page.elements.find((el: any) => el.name === "periodo");
+            if (periodoElement && periodoElement.type === "dropdown" && periodosAdeudados.length > 0) {
+              // Convertir períodos adeudados a formato de choices
+              periodoElement.choices = periodosAdeudados.map((periodo: string) => {
+                const [year, month] = periodo.split('-');
+                const monthNames = [
+                  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+                ];
+                const monthName = monthNames[parseInt(month) - 1];
+                return {
+                  value: periodo,
+                  text: `${monthName} ${year}`
+                };
+              });
+              
+              // Establecer el primer período como default
+              periodoElement.defaultValue = periodosAdeudados[0];
+            }
+
+            return {
+              schema: transformedSchema,
+              metadata: {
+                cuit,
+                razonSocial,
+                actividad,
+                codigoActividad,
+                alicuota,
+                periodosAdeudados
+              }
+            };
           }
         input_transforms:
-          preload_results:
+          schema:
             type: javascript
-            expr: results.execute_preload_hooks
-          initial_data:
+            expr: results.get_runtime.schema
+          cuit:
             type: javascript
-            expr: flow_input.initial_data || {}
+            expr: results.parse_jwt.cuit
+          razonSocial:
+            type: javascript
+            expr: results.fetch_padron.razonSocial
+          actividad:
+            type: javascript
+            expr: results.fetch_padron.actividad
+          codigoActividad:
+            type: javascript
+            expr: results.fetch_padron.codigoActividad
+          periodosAdeudados:
+            type: javascript
+            expr: results.fetch_periodos.periodosAdeudados
+          alicuota:
+            type: javascript
+            expr: results.fetch_alicuota.alicuota
 
-    - id: create_submission
+    - id: save_submission
+      summary: Guardar o actualizar submission en estado draft
       value:
         type: script
-        path: f/formularios/forms/save_submission
+        path: f/forms/find_or_create_submission
         input_transforms:
           form_id:
             type: javascript
@@ -69,33 +215,55 @@ value:
           version:
             type: javascript
             expr: results.get_runtime.version
+          cuit:
+            type: javascript
+            expr: results.parse_jwt.cuit
           data:
             type: javascript
-            expr: results.merge_preload_data
-          status:
+            expr: results.transform_schema.schema
+          metadata:
             type: javascript
-            expr: "'draft'"
-          created_by:
-            type: javascript
-            expr: flow_input.created_by || 'anonymous'
+            expr: |
+              ({
+                cuit: results.parse_jwt.cuit,
+                razonSocial: results.fetch_padron.razonSocial,
+                actividad: results.fetch_padron.actividad,
+                codigoActividad: results.fetch_padron.codigoActividad,
+                regimen: results.fetch_padron.regimen,
+                alicuota: results.fetch_alicuota.alicuota,
+                montoAnterior: results.fetch_historial?.montoAnterior,
+                fechaUltimaDDJJ: results.fetch_historial?.fechaUltimaDDJJ,
+                periodosAdeudados: results.fetch_periodos.periodosAdeudados
+              })
 
     - id: build_response
+      summary: Construir respuesta final
       value:
-        type: script
-        path: hub/3930/deno/inline_script
-        content: |
-          export async function main(runtime: any, data: any, submission: any) {
+        type: rawscript
+        language: bun
+        content: |-
+          export async function main(
+            runtime: any,
+            transformedData: any,
+            submission: any,
+            cuit: string,
+            razonSocial: string
+          ) {
             return {
-              schema: runtime.schema,
-              config: runtime.config,
-              data: data,
               submission_id: submission.id,
+              schema: transformedData.schema,
+              config: runtime.config,
               form_id: runtime.form_id,
               version: runtime.version,
               metadata: {
                 form_name: runtime.name,
                 form_slug: runtime.slug,
-                category: runtime.category
+                category: runtime.category,
+                ...transformedData.metadata,
+                created_by: cuit,
+                submission_status: submission.status,
+                submission_created_at: submission.created_at,
+                submission_updated_at: submission.updated_at
               }
             };
           }
@@ -103,9 +271,28 @@ value:
           runtime:
             type: javascript
             expr: results.get_runtime
-          data:
+          transformedData:
             type: javascript
-            expr: results.merge_preload_data
+            expr: results.transform_schema
           submission:
             type: javascript
-            expr: results.create_submission
+            expr: results.save_submission
+          cuit:
+            type: javascript
+            expr: results.parse_jwt.cuit
+          razonSocial:
+            type: javascript
+            expr: results.fetch_padron.razonSocial
+
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - token
+  properties:
+    token:
+      type: string
+      description: 'Token JWT desde request. Generar uno usando: wmill script run f/plugins/ddjj/generate_test_jwt'
+      default: GENERATE_TOKEN_FIRST
+  required:
+    - token
