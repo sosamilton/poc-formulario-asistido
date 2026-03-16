@@ -1,14 +1,14 @@
 summary: Obtener datos del padrón
 description: Consulta datos del contribuyente desde el padrón
+lock: '!inline f/plugins/ddjj/fetch_padron.script.lock'
 kind: script
-language: bun
 schema:
   $schema: https://json-schema.org/draft/2020-12/schema
   type: object
   properties:
-    cuit:
-      type: string
-      description: CUIT del contribuyente
     created_by:
       type: string
       description: Usuario alternativo para obtener CUIT
+    cuit:
+      type: string
+      description: CUIT del contribuyente

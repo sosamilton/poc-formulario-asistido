@@ -1,23 +1,23 @@
 summary: Enviar a backend IIBB
 description: Envía la submission al backend de IIBB
+lock: '!inline f/plugins/ddjj/send_to_backend.script.lock'
 kind: script
-language: bun
 schema:
   $schema: https://json-schema.org/draft/2020-12/schema
   type: object
   properties:
-    submission_id:
-      type: string
-      description: ID de la submission
-    form_id:
-      type: string
-      description: ID del formulario
     data:
       type: object
       description: Datos del formulario
+    form_id:
+      type: string
+      description: ID del formulario
     metadata:
       type: object
       description: Metadata adicional
+    submission_id:
+      type: string
+      description: ID de la submission
   required:
     - submission_id
     - form_id

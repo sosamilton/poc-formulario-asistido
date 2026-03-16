@@ -1,29 +1,22 @@
 summary: Initialize form workflow
 description: Loads form schema, executes preload hooks, and creates draft submission
-
 value:
   modules:
     - id: get_runtime
       value:
         type: script
-        path: f/formularios/forms/get_runtime
         input_transforms:
-          slug:
-            type: javascript
-            expr: flow_input.slug
           version:
             type: javascript
             expr: flow_input.version
-
+          slug:
+            type: javascript
+            expr: flow_input.slug
+        path: f/formularios/forms/get_runtime
     - id: execute_preload_hooks
       value:
         type: script
-        path: f/formularios/forms/execute_hooks
         input_transforms:
-          hooks:
-            type: javascript
-            expr: |
-              results.get_runtime.config?.hooks?.preload || []
           context:
             type: javascript
             expr: |
@@ -33,11 +26,14 @@ value:
                 version: results.get_runtime.version,
                 created_by: flow_input.created_by
               })
-
+          hooks:
+            type: javascript
+            expr: |
+              results.get_runtime.config?.hooks?.preload || []
+        path: f/formularios/forms/execute_hooks
     - id: merge_preload_data
       value:
         type: script
-        path: hub/3930/deno/inline_script
         content: |
           export async function main(preload_results: any, initial_data: any) {
             const merged = { ...(initial_data || {}) };
@@ -51,38 +47,36 @@ value:
             return merged;
           }
         input_transforms:
-          preload_results:
-            type: javascript
-            expr: results.execute_preload_hooks
           initial_data:
             type: javascript
             expr: flow_input.initial_data || {}
-
+          preload_results:
+            type: javascript
+            expr: results.execute_preload_hooks
+        path: hub/3930/deno/inline_script
     - id: create_submission
       value:
         type: script
-        path: f/formularios/forms/save_submission
         input_transforms:
-          form_id:
-            type: javascript
-            expr: results.get_runtime.form_id
           version:
             type: javascript
             expr: results.get_runtime.version
-          data:
-            type: javascript
-            expr: results.merge_preload_data
-          status:
-            type: javascript
-            expr: "'draft'"
           created_by:
             type: javascript
             expr: flow_input.created_by || 'anonymous'
-
+          data:
+            type: javascript
+            expr: results.merge_preload_data
+          form_id:
+            type: javascript
+            expr: results.get_runtime.form_id
+          status:
+            type: javascript
+            expr: "'draft'"
+        path: f/formularios/forms/save_submission
     - id: build_response
       value:
         type: script
-        path: hub/3930/deno/inline_script
         content: |
           export async function main(runtime: any, data: any, submission: any) {
             return {
@@ -100,12 +94,14 @@ value:
             };
           }
         input_transforms:
-          runtime:
-            type: javascript
-            expr: results.get_runtime
           data:
             type: javascript
             expr: results.merge_preload_data
+          runtime:
+            type: javascript
+            expr: results.get_runtime
           submission:
             type: javascript
             expr: results.create_submission
+        path: hub/3930/deno/inline_script
+schema: null
