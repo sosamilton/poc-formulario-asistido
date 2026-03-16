@@ -15,10 +15,12 @@ import { Button } from "@/components/ui/button"
 
 interface SurveyFormProps {
   json: object
-  onComplete?: (data: Record<string, unknown>) => void
+  onComplete?: (data: Record<string, unknown>, metadata?: any, submissionId?: string) => void
+  metadata?: any
+  submissionId?: string
 }
 
-export function SurveyForm({ json, onComplete }: SurveyFormProps) {
+export function SurveyForm({ json, onComplete, metadata, submissionId }: SurveyFormProps) {
   const [showRectifyModal, setShowRectifyModal] = useState(false)
   const [survey] = useState(() => {
     const surveyModel = new Model(json)
@@ -48,8 +50,8 @@ export function SurveyForm({ json, onComplete }: SurveyFormProps) {
 
   const handleComplete = useCallback((sender: Model) => {
     const results = sender.data
-    onComplete?.(results)
-  }, [onComplete])
+    onComplete?.(results, metadata, submissionId)
+  }, [onComplete, metadata, submissionId])
 
   const handleValueChanged = useCallback((sender: Model, options: { name: string; value: string }) => {
     if (options.name === "periodo") {
