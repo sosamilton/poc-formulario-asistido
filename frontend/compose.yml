@@ -6,15 +6,15 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_WINDMILL_URL: https://windmill.mdsoluciones.ar
+        NEXT_PUBLIC_WINDMILL_URL: http://localhost
         NEXT_PUBLIC_AUTH_MODE: mock
         NEXT_PUBLIC_WINDMILL_WORKSPACE: arba
     ports:
       - "3011:3000"
     restart: unless-stopped
-    networks:
-      - iibb-network
+    # networks:
+    #   - iibb-network
 
-networks:
-  iibb-network:
-    external: true
+# networks:
+#   iibb-network:
+#     external: true
