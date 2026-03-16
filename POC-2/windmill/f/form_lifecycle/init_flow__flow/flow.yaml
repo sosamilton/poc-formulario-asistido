@@ -7,49 +7,43 @@ description: |-
   4. Ejecutar consultas paralelas a APIs (padrón, historial, períodos, alícuota)
   5. Transformar el JSON del formulario con datos precargados
   6. Crear submission con datos iniciales
-
 value:
   modules:
     - id: parse_jwt
       summary: Extraer CUIT del token JWT
       value:
         type: script
-        path: f/plugins/ddjj/parse_jwt
         input_transforms:
           token:
             type: javascript
             expr: flow_input.token
-
+        path: f/plugins/ddjj/parse_jwt
     - id: set_slug
       summary: Hardcodear slug del formulario
       value:
         type: rawscript
+        content: '!inline hardcodear_slug_del_formulario.ts'
+        input_transforms: {}
+        lock: '!inline hardcodear_slug_del_formulario.lock'
         language: bun
-        content: |-
-          export async function main() {
-            return { slug: "ddjj-iibb-simplificado" };
-          }
-
     - id: get_form
       summary: Obtener formulario por slug
       value:
         type: script
-        path: f/forms/get_form
         input_transforms:
           slug:
             type: javascript
             expr: results.set_slug.slug
-
+        path: f/forms/get_form
     - id: get_runtime
       summary: Obtener runtime (schema JSON) del formulario
       value:
         type: script
-        path: f/forms/get_runtime
         input_transforms:
           slug:
             type: javascript
             expr: results.set_slug.slug
-
+        path: f/forms/get_runtime
     - id: parallel_fetch
       summary: Obtener datos en paralelo (padrón, historial, períodos)
       value:
@@ -60,158 +54,84 @@ value:
               - id: fetch_padron
                 value:
                   type: script
-                  path: f/plugins/ddjj/fetch_padron
                   input_transforms:
                     cuit:
                       type: javascript
                       expr: results.parse_jwt.cuit
+                  path: f/plugins/ddjj/fetch_padron
+            expr: ''
             parallel: true
             skip_failure: true
-
           - summary: Obtener datos históricos
             modules:
               - id: fetch_historial
                 value:
                   type: script
-                  path: f/plugins/ddjj/fetch_historial
                   input_transforms:
                     cuit:
                       type: javascript
                       expr: results.parse_jwt.cuit
+                  path: f/plugins/ddjj/fetch_historial
+            expr: ''
             parallel: true
             skip_failure: true
-
           - summary: Obtener períodos adeudados
             modules:
               - id: fetch_periodos
                 value:
                   type: script
-                  path: f/plugins/ddjj/fetch_periodos_adeudados
                   input_transforms:
                     cuit:
                       type: javascript
                       expr: results.parse_jwt.cuit
+                  path: f/plugins/ddjj/fetch_periodos_adeudados
+            expr: ''
             parallel: true
             skip_failure: true
         parallel: true
-
     - id: fetch_alicuota
       summary: Obtener alícuota por código de actividad
       value:
         type: script
-        path: f/plugins/ddjj/fetch_alicuota
         input_transforms:
           codigoActividad:
             type: javascript
             expr: results.fetch_padron.codigoActividad
-
+        path: f/plugins/ddjj/fetch_alicuota
     - id: transform_schema
       summary: Transformar JSON del formulario con datos precargados
       value:
         type: rawscript
-        language: bun
-        content: |-
-          type SchemaJson = {
-            title?: string;
-            logoPosition?: string;
-            pages?: Array<{
-              name: string;
-              elements: Array<any>;
-            }>;
-            [key: string]: any;
-          };
-
-          export async function main(
-            schema: SchemaJson,
-            cuit: string,
-            razonSocial: string,
-            actividad: string,
-            codigoActividad: string,
-            periodosAdeudados: string[],
-            alicuota: number
-          ) {
-            const transformedSchema = JSON.parse(JSON.stringify(schema));
-            
-            if (!transformedSchema.pages || transformedSchema.pages.length === 0) {
-              throw new Error("Schema no tiene páginas definidas");
-            }
-
-            const page = transformedSchema.pages[0];
-            if (!page.elements) {
-              page.elements = [];
-            }
-
-            // Actualizar el HTML del info_contribuyente
-            const infoElement = page.elements.find((el: any) => el.name === "info_contribuyente");
-            if (infoElement && infoElement.type === "html") {
-              infoElement.html = `<div class='contribuyente-info'><div class='info-row'><span class='label'>CUIT</span><span class='value'>${cuit} - ${razonSocial}</span></div><div class='info-row'><span class='label'>Actividad</span><span class='value'>${actividad} (${codigoActividad})</span></div></div>`;
-            }
-
-            // Actualizar el dropdown de períodos con los períodos adeudados
-            const periodoElement = page.elements.find((el: any) => el.name === "periodo");
-            if (periodoElement && periodoElement.type === "dropdown" && periodosAdeudados.length > 0) {
-              // Convertir períodos adeudados a formato de choices
-              periodoElement.choices = periodosAdeudados.map((periodo: string) => {
-                const [year, month] = periodo.split('-');
-                const monthNames = [
-                  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-                ];
-                const monthName = monthNames[parseInt(month) - 1];
-                return {
-                  value: periodo,
-                  text: `${monthName} ${year}`
-                };
-              });
-              
-              // Establecer el primer período como default
-              periodoElement.defaultValue = periodosAdeudados[0];
-            }
-
-            return {
-              schema: transformedSchema,
-              metadata: {
-                cuit,
-                razonSocial,
-                actividad,
-                codigoActividad,
-                alicuota,
-                periodosAdeudados
-              }
-            };
-          }
+        content: '!inline transformar_json_del_formulario_con_datos_precargados.ts'
         input_transforms:
-          schema:
-            type: javascript
-            expr: results.get_runtime.schema
-          cuit:
-            type: javascript
-            expr: results.parse_jwt.cuit
-          razonSocial:
-            type: javascript
-            expr: results.fetch_padron.razonSocial
           actividad:
             type: javascript
             expr: results.fetch_padron.actividad
-          codigoActividad:
-            type: javascript
-            expr: results.fetch_padron.codigoActividad
-          periodosAdeudados:
-            type: javascript
-            expr: results.fetch_periodos.periodosAdeudados
           alicuota:
             type: javascript
             expr: results.fetch_alicuota.alicuota
-
+          codigoActividad:
+            type: javascript
+            expr: results.fetch_padron.codigoActividad
+          cuit:
+            type: javascript
+            expr: results.parse_jwt.cuit
+          periodosAdeudados:
+            type: javascript
+            expr: results.fetch_periodos.periodosAdeudados
+          razonSocial:
+            type: javascript
+            expr: results.fetch_padron.razonSocial
+          schema:
+            type: javascript
+            expr: results.get_runtime.schema
+        lock: '!inline transformar_json_del_formulario_con_datos_precargados.lock'
+        language: bun
     - id: save_submission
       summary: Guardar o actualizar submission en estado draft
       value:
         type: script
-        path: f/forms/find_or_create_submission
         input_transforms:
-          form_id:
-            type: javascript
-            expr: results.get_runtime.form_id
           version:
             type: javascript
             expr: results.get_runtime.version
@@ -221,6 +141,9 @@ value:
           data:
             type: javascript
             expr: results.transform_schema.schema
+          form_id:
+            type: javascript
+            expr: results.get_runtime.form_id
           metadata:
             type: javascript
             expr: |
@@ -235,55 +158,30 @@ value:
                 fechaUltimaDDJJ: results.fetch_historial?.fechaUltimaDDJJ,
                 periodosAdeudados: results.fetch_periodos.periodosAdeudados
               })
-
+        path: f/forms/find_or_create_submission
     - id: build_response
       summary: Construir respuesta final
       value:
         type: rawscript
-        language: bun
-        content: |-
-          export async function main(
-            runtime: any,
-            transformedData: any,
-            submission: any,
-            cuit: string,
-            razonSocial: string
-          ) {
-            return {
-              submission_id: submission.id,
-              schema: transformedData.schema,
-              config: runtime.config,
-              form_id: runtime.form_id,
-              version: runtime.version,
-              metadata: {
-                form_name: runtime.name,
-                form_slug: runtime.slug,
-                category: runtime.category,
-                ...transformedData.metadata,
-                created_by: cuit,
-                submission_status: submission.status,
-                submission_created_at: submission.created_at,
-                submission_updated_at: submission.updated_at
-              }
-            };
-          }
+        content: '!inline construir_respuesta_final.ts'
         input_transforms:
-          runtime:
-            type: javascript
-            expr: results.get_runtime
-          transformedData:
-            type: javascript
-            expr: results.transform_schema
-          submission:
-            type: javascript
-            expr: results.save_submission
           cuit:
             type: javascript
             expr: results.parse_jwt.cuit
           razonSocial:
             type: javascript
             expr: results.fetch_padron.razonSocial
-
+          runtime:
+            type: javascript
+            expr: results.get_runtime
+          submission:
+            type: javascript
+            expr: results.save_submission
+          transformedData:
+            type: javascript
+            expr: results.transform_schema
+        lock: '!inline construir_respuesta_final.lock'
+        language: bun
 schema:
   $schema: https://json-schema.org/draft/2020-12/schema
   type: object
@@ -292,7 +190,8 @@ schema:
   properties:
     token:
       type: string
-      description: 'Token JWT desde request. Generar uno usando: wmill script run f/plugins/ddjj/generate_test_jwt'
+      description: 'Token JWT desde request. Generar uno usando: wmill script run
+        f/plugins/ddjj/generate_test_jwt'
       default: GENERATE_TOKEN_FIRST
   required:
     - token
