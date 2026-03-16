@@ -1,51 +1,31 @@
-import * as wmill from "windmill-client";
-
-type FetchPadronInput = {
-  cuit?: string;
-  created_by?: string;
+type PadronData = {
+  cuit: string;
+  razonSocial: string;
+  actividad: string;
+  codigoActividad: string;
+  regimen: string;
 };
 
-export async function main(input: FetchPadronInput) {
-  const cuit = input.cuit || input.created_by;
-
-  if (!cuit) {
-    return {
-      success: false,
-      message: "CUIT no proporcionado",
-      data: null,
-    };
-  }
-
+export async function main(cuit: string): Promise<PadronData> {
+  const mockoonUrl = "http://mockoon:3001";
+  
   try {
-    const sql = wmill.datatable();
+    const response = await fetch(`${mockoonUrl}/api/padron/${cuit}`);
     
-    const contribuyente = await sql`
-      SELECT * FROM padron_contribuyentes WHERE cuit = ${cuit} LIMIT 1
-    `.fetchOne();
-
-    if (!contribuyente) {
-      return {
-        success: false,
-        message: "Contribuyente no encontrado en el padrón",
-        data: null,
-      };
+    if (!response.ok) {
+      throw new Error(`Error en API Mockoon: ${response.status} ${response.statusText}`);
     }
-
+    
+    const data = await response.json();
+    
     return {
-      success: true,
-      data: {
-        cuit: contribuyente.cuit,
-        razon_social: contribuyente.razon_social,
-        domicilio_fiscal: contribuyente.domicilio_fiscal,
-        actividad_principal: contribuyente.actividad_principal,
-        regimen: contribuyente.regimen,
-      },
+      cuit: data.cuit,
+      razonSocial: data.razonSocial,
+      actividad: data.actividad,
+      codigoActividad: data.codigoActividad,
+      regimen: data.regimen,
     };
   } catch (error) {
-    return {
-      success: false,
-      message: `Error al consultar padrón: ${error.message}`,
-      data: null,
-    };
+    throw new Error(`Error al obtener datos del padrón: ${(error as Error).message}`);
   }
 }
