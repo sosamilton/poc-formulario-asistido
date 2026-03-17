@@ -1,3 +1,4 @@
+//nobundling
 import * as wmill from "windmill-client";
 
 export async function main(
@@ -35,24 +36,19 @@ export async function main(
     const currentVersion = await sql`
       SELECT schema_json, config
       FROM form_versions
-      WHERE form_id = ${form.id} AND version = ${form.active_version}
+      WHERE form_id = ${form.id}::uuid AND version = ${form.active_version}
     `.fetchOne();
 
     await sql`
       INSERT INTO form_versions (form_id, version, schema_json, config, created_by)
-      VALUES (
-        ${form.id},
-        ${newVersion},
-        ${JSON.stringify(schema_json || currentVersion.schema_json)},
-        ${JSON.stringify(config || currentVersion.config)},
-        ${updated_by}
-      )
+      VALUES (${form.id}::uuid, ${newVersion}, ${schema_json || currentVersion.schema_json}, 
+              ${config || currentVersion.config}, ${updated_by})
     `.execute();
 
     await sql`
       UPDATE forms
       SET active_version = ${newVersion}
-      WHERE id = ${form.id}
+      WHERE id = ${form.id}::uuid
     `.execute();
   }
 
