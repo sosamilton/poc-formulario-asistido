@@ -25,16 +25,16 @@ export function SurveyForm({ json, onComplete, metadata, submissionId }: SurveyF
   const [survey] = useState(() => {
     const surveyModel = new Model(json)
     
-    // Custom theme to match ARBA colors
+    // Custom theme to match ARBA colors - removing green-blue borders and gray background
     surveyModel.applyTheme({
       cssVariables: {
         "--sjs-primary-backcolor": "#00a0af",
         "--sjs-primary-backcolor-light": "rgba(0, 160, 175, 0.1)",
         "--sjs-primary-backcolor-dark": "#008a99",
         "--sjs-primary-forecolor": "#ffffff",
-        "--sjs-secondary-backcolor": "#f5f5f5",
+        "--sjs-secondary-backcolor": "#ffffff",
         "--sjs-general-backcolor": "#ffffff",
-        "--sjs-general-backcolor-dim": "#f8f9fa",
+        "--sjs-general-backcolor-dim": "#ffffff",
         "--sjs-general-forecolor": "#1a1a1a",
         "--sjs-general-forecolor-light": "#666666",
         "--sjs-border-default": "#e0e0e0",
@@ -42,6 +42,8 @@ export function SurveyForm({ json, onComplete, metadata, submissionId }: SurveyF
         "--sjs-corner-radius": "8px",
         "--sjs-base-unit": "8px",
         "--sjs-font-family": "inherit",
+        "--sjs-shadow-inner": "none",
+        "--sjs-shadow-outer": "none",
       },
     })
     
@@ -72,6 +74,7 @@ export function SurveyForm({ json, onComplete, metadata, submissionId }: SurveyF
       <style jsx global>{`
         .sd-root-modern {
           --sd-base-padding: 16px;
+          background: transparent !important;
         }
         
         .sd-title {
@@ -79,15 +82,35 @@ export function SurveyForm({ json, onComplete, metadata, submissionId }: SurveyF
         }
         
         .sd-header__text {
-          display: none;
+          display: block;
+        }
+        
+        .sd-title.sd-container-modern__title {
+          margin-bottom: 16px !important;
+        }
+        
+        .sd-title.sd-container-modern__title h3 {
+          font-size: 20px !important;
+          font-weight: 600 !important;
+          color: #1a1a1a !important;
+          margin: 0 !important;
         }
         
         .sd-body {
           padding: 0 !important;
+          background: transparent !important;
         }
         
         .sd-page {
           padding: 0 !important;
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+        
+        .sd-row {
+          background: transparent !important;
+          border: none !important;
         }
         
         .sd-question__title {
@@ -109,7 +132,7 @@ export function SurveyForm({ json, onComplete, metadata, submissionId }: SurveyF
         }
         
         .sd-dropdown {
-          border: 2px solid #00a0af !important;
+          border: 1px solid #e0e0e0 !important;
           border-radius: 8px !important;
         }
         
@@ -138,10 +161,11 @@ export function SurveyForm({ json, onComplete, metadata, submissionId }: SurveyF
         }
         
         .contribuyente-info {
-          background-color: #f8f9fa;
+          background-color: #f8f9fa !important;
           border-radius: 8px;
           padding: 16px;
           margin-bottom: 16px;
+          border: 1px solid #e9ecef !important;
         }
         
         .contribuyente-info .info-row {
@@ -212,6 +236,30 @@ export function SurveyForm({ json, onComplete, metadata, submissionId }: SurveyF
         
         .sd-boolean--checked .sd-boolean__switch {
           background-color: #00a0af !important;
+        }
+        
+        /* Remove all green-blue borders and backgrounds */
+        .sd-element,
+        .sd-question,
+        .sd-row__question,
+        .sd-element--with-frame {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+        
+        .sd-question__content,
+        .sd-element__content {
+          background: transparent !important;
+          border: none !important;
+        }
+        
+        /* Remove any focus borders that might be green-blue */
+        .sd-question:focus,
+        .sd-element:focus,
+        .sd-row__question:focus {
+          outline: none !important;
+          box-shadow: none !important;
         }
       `}</style>
       

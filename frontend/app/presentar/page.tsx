@@ -54,9 +54,9 @@ export default function PresentarPage() {
           Volver
         </Link>
 
-        <h2 className="text-xl font-semibold text-foreground mb-6">
+        {/* <h2 className="text-xl font-semibold text-foreground mb-6">
           Presentar declaración jurada mensual
-        </h2>
+        </h2> */}
 
         {/* Load Declaration Button */}
         {!formData && !isLoading && (
@@ -105,7 +105,7 @@ export default function PresentarPage() {
         {/* Survey Form */}
         {formData && !isLoading && (
           <div>
-            {/* Debug Info */}
+            {/* Debug Info 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
               <p className="text-xs text-blue-800">
                 <strong>Token:</strong> {token?.substring(0, 20)}...
@@ -117,7 +117,7 @@ export default function PresentarPage() {
                 <strong>CUIT:</strong> {formData.metadata.cuit}
               </p>
             </div>
-
+            */}
             <SurveyForm 
               json={formData.schema} 
               onComplete={handleComplete}
