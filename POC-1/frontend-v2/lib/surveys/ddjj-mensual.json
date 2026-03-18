@@ -1,0 +1,208 @@
+{
+  "title": "Presentar declaración jurada mensual",
+  "description": "Complete los datos de su declaración jurada de ingresos brutos",
+  "logoPosition": "right",
+  "pages": [
+    {
+      "name": "datos_contribuyente",
+      "title": "Datos del contribuyente",
+      "elements": [
+        {
+          "type": "html",
+          "name": "info_contribuyente",
+          "html": "<div class='contribuyente-info'><div class='info-row'><span class='label'>CUIT</span><span class='value'>30-3456736-8 - Blabla S.A</span></div><div class='info-row'><span class='label'>Actividad</span><span class='value'>Servicios de diseño especializado (741000)</span></div></div>"
+        },
+        {
+          "type": "dropdown",
+          "name": "periodo",
+          "title": "Período a declarar",
+          "isRequired": true,
+          "choices": [
+            { "value": "2026-02", "text": "Febrero 2026" },
+            { "value": "2026-01", "text": "Enero 2026" },
+            { "value": "2025-12", "text": "Diciembre 2025" },
+            { "value": "2025-11", "text": "Noviembre 2025" },
+            { "value": "2025-10", "text": "Octubre 2025" }
+          ],
+          "defaultValue": "2026-02"
+        },
+        {
+          "type": "text",
+          "name": "monto_declarar",
+          "title": "Monto a declarar",
+          "description": "Ingrese el monto total de ingresos brutos del período",
+          "isRequired": true,
+          "inputType": "number",
+          "min": 0,
+          "placeholder": "$0,00",
+          "visibleIf": "{periodo} notempty and {periodo} != '2026-01' and {periodo} != '2025-12' and {periodo} != '2025-11' and {periodo} != '2025-10'"
+        },
+        {
+          "type": "html",
+          "name": "aviso_rectificacion",
+          "html": "<div class='warning-box'><svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='#f57c00' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><line x1='12' y1='8' x2='12' y2='12'/><line x1='12' y1='16' x2='12.01' y2='16'/></svg><p>Ya tenés una declaración jurada para este mes. Podés rectificarla si es que la querés volver a hacer.</p></div>",
+          "visibleIf": "{periodo} = '2026-01'"
+        }
+      ]
+    },
+    {
+      "name": "detalle_actividades",
+      "title": "Detalle de actividades",
+      "visibleIf": "{periodo} != '2026-01' and {periodo} != '2025-12' and {periodo} != '2025-11' and {periodo} != '2025-10'",
+      "elements": [
+        {
+          "type": "paneldynamic",
+          "name": "actividades",
+          "title": "Actividades económicas",
+          "description": "Agregue las actividades y sus montos correspondientes",
+          "templateElements": [
+            {
+              "type": "dropdown",
+              "name": "codigo_actividad",
+              "title": "Código de actividad",
+              "isRequired": true,
+              "choices": [
+                { "value": "741000", "text": "741000 - Servicios de diseño especializado" },
+                { "value": "620100", "text": "620100 - Actividades de programación informática" },
+                { "value": "731001", "text": "731001 - Servicios de publicidad" },
+                { "value": "702000", "text": "702000 - Actividades de consultoría de gestión" }
+              ]
+            },
+            {
+              "type": "text",
+              "name": "base_imponible",
+              "title": "Base imponible",
+              "isRequired": true,
+              "inputType": "number",
+              "min": 0,
+              "placeholder": "$0,00"
+            },
+            {
+              "type": "expression",
+              "name": "alicuota",
+              "title": "Alícuota",
+              "expression": "3.5",
+              "displayStyle": "percent"
+            },
+            {
+              "type": "expression",
+              "name": "impuesto_determinado",
+              "title": "Impuesto determinado",
+              "expression": "{panel.base_imponible} * 0.035",
+              "displayStyle": "currency",
+              "currency": "ARS"
+            }
+          ],
+          "panelCount": 1,
+          "minPanelCount": 1,
+          "panelAddText": "Agregar actividad",
+          "panelRemoveText": "Eliminar"
+        },
+        {
+          "type": "expression",
+          "name": "total_impuesto",
+          "title": "Total impuesto determinado",
+          "expression": "sumInArray({actividades}, 'impuesto_determinado')",
+          "displayStyle": "currency",
+          "currency": "ARS"
+        }
+      ]
+    },
+    {
+      "name": "retenciones_percepciones",
+      "title": "Retenciones y percepciones",
+      "visibleIf": "{periodo} != '2026-01' and {periodo} != '2025-12' and {periodo} != '2025-11' and {periodo} != '2025-10'",
+      "elements": [
+        {
+          "type": "text",
+          "name": "retenciones_sufridas",
+          "title": "Retenciones sufridas",
+          "description": "Monto total de retenciones del período",
+          "inputType": "number",
+          "min": 0,
+          "defaultValue": 0,
+          "placeholder": "$0,00"
+        },
+        {
+          "type": "text",
+          "name": "percepciones_sufridas",
+          "title": "Percepciones sufridas",
+          "description": "Monto total de percepciones del período",
+          "inputType": "number",
+          "min": 0,
+          "defaultValue": 0,
+          "placeholder": "$0,00"
+        },
+        {
+          "type": "text",
+          "name": "saldo_favor_anterior",
+          "title": "Saldo a favor período anterior",
+          "inputType": "number",
+          "min": 0,
+          "defaultValue": 0,
+          "placeholder": "$0,00"
+        },
+        {
+          "type": "expression",
+          "name": "saldo_a_pagar",
+          "title": "Saldo a pagar",
+          "expression": "max(0, {total_impuesto} - {retenciones_sufridas} - {percepciones_sufridas} - {saldo_favor_anterior})",
+          "displayStyle": "currency",
+          "currency": "ARS"
+        },
+        {
+          "type": "expression",
+          "name": "saldo_favor",
+          "title": "Saldo a favor",
+          "expression": "max(0, ({retenciones_sufridas} + {percepciones_sufridas} + {saldo_favor_anterior}) - {total_impuesto})",
+          "displayStyle": "currency",
+          "currency": "ARS"
+        }
+      ]
+    },
+    {
+      "name": "confirmacion",
+      "title": "Confirmación",
+      "visibleIf": "{periodo} != '2026-01' and {periodo} != '2025-12' and {periodo} != '2025-11' and {periodo} != '2025-10'",
+      "elements": [
+        {
+          "type": "html",
+          "name": "resumen",
+          "html": "<h3>Resumen de la declaración</h3><p>Revise los datos antes de confirmar la presentación.</p>"
+        },
+        {
+          "type": "expression",
+          "name": "resumen_periodo",
+          "title": "Período",
+          "expression": "{periodo}"
+        },
+        {
+          "type": "expression",
+          "name": "resumen_total",
+          "title": "Total a pagar",
+          "expression": "{saldo_a_pagar}",
+          "displayStyle": "currency",
+          "currency": "ARS"
+        },
+        {
+          "type": "boolean",
+          "name": "declaro_verdad",
+          "title": "Declaro bajo juramento que los datos consignados son correctos y completos",
+          "isRequired": true,
+          "labelTrue": "Sí, declaro",
+          "labelFalse": "No"
+        }
+      ]
+    }
+  ],
+  "showQuestionNumbers": "off",
+  "showProgressBar": "top",
+  "progressBarType": "questions",
+  "goNextPageAutomatic": false,
+  "showNavigationButtons": true,
+  "pageNextText": "Continuar",
+  "pagePrevText": "Anterior",
+  "completeText": "Presentar declaración",
+  "requiredText": "*",
+  "questionErrorLocation": "bottom"
+}
