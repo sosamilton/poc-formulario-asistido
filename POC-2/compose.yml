@@ -1,4 +1,4 @@
-name: poc1-stack
+name: poc2-stack
 
 include:
   - path: ../windmill/compose.yml

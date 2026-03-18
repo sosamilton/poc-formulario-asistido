@@ -1,7 +1,7 @@
-name: frontend-stack
+name: formio-v2
 
 services:
-  frontend:
+  frontend-formio-v2:
     build:
       context: .
       dockerfile: Dockerfile

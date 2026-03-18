@@ -1,7 +1,7 @@
-name: frontend-stack
+name: surveyjs
 
 services:
-  frontend:
+  frontend-surveyjs:
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,7 +10,7 @@ services:
         NEXT_PUBLIC_AUTH_MODE: mock
         NEXT_PUBLIC_WINDMILL_WORKSPACE: arba
     ports:
-      - "3011:3000"
+      - "3013:3000"
     restart: unless-stopped
     # networks:
     #   - iibb-network

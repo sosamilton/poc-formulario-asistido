@@ -1,5 +1,7 @@
+name: formio
+
 services:
-  frontend:
+  frontend-formio:
     build:
       context: .
       dockerfile: Dockerfile

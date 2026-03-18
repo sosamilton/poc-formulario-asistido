@@ -1,3 +1,4 @@
+name: apis
 services:
   mockoon:
     image: mockoon/cli:latest
