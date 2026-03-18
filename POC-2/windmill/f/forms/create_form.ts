@@ -21,8 +21,8 @@ export async function main(
 
   const version = await sql`
     INSERT INTO form_versions (form_id, version, schema_json, config, created_by)
-    VALUES (${form.id}::uuid, 1, ${JSON.stringify(schema_json)}, 
-            ${JSON.stringify(config || {})}, ${created_by || "system"})
+    VALUES (${form.id}::uuid, 1, ${schema_json}, 
+            ${config || {}}, ${created_by || "system"})
     RETURNING *
   `.fetchOne();
 
