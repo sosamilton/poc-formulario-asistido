@@ -3,7 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: iibb-frontend-dev
     ports:
       - "3011:3000"
     volumes:
@@ -11,14 +10,9 @@ services:
       - /app/node_modules
     # env_file: .env.example
     environment:
-      - VITE_WINDMILL_URL=https://windmill.mdsoluciones.ar
+      - VITE_WINDMILL_URL=http://localhost
       - VITE_AUTH_MODE=mock
       - VITE_WINDMILL_WORKSPACE=arba
-      - VITE_FORMIO_URL=https://formio.mdsoluciones.ar
+      - VITE_FORMIO_URL=http://localhost:3010
     restart: unless-stopped
-    networks:
-      - iibb-network
 
-networks:
-  iibb-network:
-    driver: bridge

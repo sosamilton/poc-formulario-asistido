@@ -7,7 +7,7 @@ type PadronData = {
 };
 
 export async function main(cuit: string): Promise<PadronData> {
-  const mockoonUrl = "https://apis.mdsoluciones.ar";
+  const mockoonUrl = "http://mockoon:3001";
   
   try {
     const response = await fetch(`${mockoonUrl}/api/padron/${cuit}`);

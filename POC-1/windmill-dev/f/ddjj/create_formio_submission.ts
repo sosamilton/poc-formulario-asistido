@@ -18,7 +18,7 @@ type SubmissionResult = {
 };
 
 export async function main(data: SubmissionData): Promise<SubmissionResult> {
-  const formioUrl = "https://formio.mdsoluciones.ar/";
+  const formioUrl = "http://formio:3001/";
   const formId = "69ac22b5c99310e3a822b518";
   // Crear submission vacía solo con campos básicos para evitar recursividad
   // Los demás campos se llenarán en el frontend con prefillData

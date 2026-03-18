@@ -123,7 +123,7 @@ def init_ddjj_mensual(user: Dict[str, Any], params: Dict[str, Any]) -> Dict[str,
         
         # El workflow devuelve los datos sin crear submission en Form.io
         # La submission se creará solo cuando el usuario haga submit
-        formio_url = os.getenv("FORMIO_URL", "https://formio.mdsoluciones.ar")
+        formio_url = os.getenv("FORMIO_URL", "http://localhost:3010")
         form_name = "iibbSimple"
         
         periodos_adeudados = workflow_result.get("periodosAdeudados", [])
@@ -153,7 +153,7 @@ def init_ddjj_mensual(user: Dict[str, Any], params: Dict[str, Any]) -> Dict[str,
         print(f"[ERROR] Traceback completo:\n{traceback.format_exc()}")
         
         # Fallback: devolver datos mínimos sin submission
-        formio_url = os.getenv("FORMIO_URL", "https://formio.mdsoluciones.ar")
+        formio_url = os.getenv("FORMIO_URL", "http://localhost:3010")
         form_name = "iibbSimple"
         return {
             "formUrl": f"{formio_url}/{form_name}",

@@ -2,7 +2,7 @@ summary: Inicializar DDJJ vía HTTP
 description: Endpoint HTTP para inicializar el flujo de DDJJ con token JWT
 authentication_method: none
 authentication_resource_path: null
-email: admin@arba.gob.ar
+email: admin@windmill.dev
 http_method: post
 is_flow: true
 is_static_website: false

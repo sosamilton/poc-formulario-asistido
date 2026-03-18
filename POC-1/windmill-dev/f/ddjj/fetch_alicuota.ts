@@ -5,7 +5,7 @@ type AlicuotaData = {
 };
 
 export async function main(codigoActividad: string): Promise<AlicuotaData> {
-  const mockoonUrl = "https://apis.mdsoluciones.ar";
+  const mockoonUrl = "http://mockoon:3001";
   
   try {
     const response = await fetch(`${mockoonUrl}/api/actividad/${codigoActividad}`);
