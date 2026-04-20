@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   orbeon-forms:
-    image: orbeon/orbeon-forms:2025.1-pe
+    image: nasqueron/orbeon:latest
     ports:
       - ${ORBEON_TOMCAT_PORT:-8080}:8080
     volumes:
@@ -16,7 +16,7 @@ services:
     networks:
       - orbeon-forms-and-postgres
   postgres:
-    image: orbeon/postgres:2025.1-pe
+    image: postgres:16-alpine
     restart: always
     ports:
       - ${ORBEON_POSTGRES_PORT:-5432}:5432

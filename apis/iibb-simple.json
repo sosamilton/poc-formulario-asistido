@@ -1,0 +1,335 @@
+{
+    "uuid": "a1b2c3d4-0001-4000-8000-000000000001",
+    "lastMigration": 33,
+    "name": "iibb-simple",
+    "endpointPrefix": "",
+    "latency": 0,
+    "port": 3002,
+    "hostname": "0.0.0.0",
+    "folders": [],
+    "routes": [
+        {
+            "uuid": "a1b2c3d4-0002-4000-8000-000000000001",
+            "type": "http",
+            "documentation": "Contribuyente autenticado (CUIT derivado del JWT)",
+            "method": "get",
+            "endpoint": "api/v1/contribuyente/me",
+            "responses": [
+                {
+                    "uuid": "a1b2c3d4-0002-4000-8000-000000000002",
+                    "body": "{\n  \"cuit\": \"20345534234\",\n  \"razonSocial\": \"Juan Perez\",\n  \"regimen\": \"LOCAL\",\n  \"email\": \"juan.perez@example.com\"\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Default",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true,
+                    "crudKey": "id",
+                    "callbacks": []
+                }
+            ],
+            "responseMode": null,
+            "streamingMode": null,
+            "streamingInterval": 0
+        },
+        {
+            "uuid": "a1b2c3d4-0003-4000-8000-000000000001",
+            "type": "http",
+            "documentation": "Elegibilidad DDJJ simple: mono-actividad sostenida + periodos presentables + historico. Punto unico que decide el happy-path vs redirect a legacy.",
+            "method": "get",
+            "endpoint": "api/v1/contribuyente/me/elegibilidad-ddjj-simple",
+            "responses": [
+                {
+                    "uuid": "a1b2c3d4-0003-4000-8000-000000000002",
+                    "body": "{\n  \"elegible\": true,\n  \"motivoNoElegible\": null,\n  \"ventanaMeses\": 3,\n  \"actividadUnica\": {\n    \"codigo\": \"620100\",\n    \"descripcion\": \"Servicios profesionales\",\n    \"alicuotaVigente\": 3.50,\n    \"tipoHost\": \"G\",\n    \"codigoTratamientoFiscal\": 0\n  },\n  \"periodosPresentables\": [\n    { \"periodo\": \"2026-02\", \"periodoDisplay\": \"Febrero 2026\", \"vencimiento\": \"2026-02-28\", \"estado\": \"NO_PRESENTADA\" },\n    { \"periodo\": \"2026-01\", \"periodoDisplay\": \"Enero 2026\", \"vencimiento\": \"2026-02-15\", \"estado\": \"NO_PRESENTADA\" }\n  ],\n  \"historialReciente\": [\n    {\n      \"periodo\": \"2025-12\",\n      \"periodoDisplay\": \"Diciembre 2025\",\n      \"estado\": \"PRESENTADA\",\n      \"nroComprobante\": 987654,\n      \"fechaCierre\": \"2026-01-10T14:22:00Z\",\n      \"montoDeclarado\": 150000.00,\n      \"impuestoPagado\": 5250.00,\n      \"linkLegacy\": \"/IBPresentaciones/verDJ.do?nroComprobante=987654\"\n    },\n    {\n      \"periodo\": \"2025-11\",\n      \"periodoDisplay\": \"Noviembre 2025\",\n      \"estado\": \"PRESENTADA\",\n      \"nroComprobante\": 987123,\n      \"fechaCierre\": \"2025-12-10T11:05:00Z\",\n      \"montoDeclarado\": 142000.00,\n      \"impuestoPagado\": 4970.00,\n      \"linkLegacy\": \"/IBPresentaciones/verDJ.do?nroComprobante=987123\"\n    }\n  ]\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Elegible - flujo simple",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "query",
+                            "modifier": "scenario",
+                            "value": "elegible",
+                            "invert": false,
+                            "operator": "equals"
+                        }
+                    ],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true,
+                    "crudKey": "id",
+                    "callbacks": []
+                },
+                {
+                    "uuid": "a1b2c3d4-0003-4000-8000-000000000003",
+                    "body": "{\n  \"elegible\": false,\n  \"motivoNoElegible\": \"MULTIPLES_ACTIVIDADES\",\n  \"mensajeUsuario\": \"Tu caso requiere la presentacion completa porque registras mas de una actividad en los ultimos 3 meses.\",\n  \"linkLegacy\": \"/IBPresentaciones/preInicioDDJJ.do\",\n  \"ventanaMeses\": 3,\n  \"actividadUnica\": null,\n  \"periodosPresentables\": [],\n  \"historialReciente\": []\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "No elegible - multiples actividades",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "query",
+                            "modifier": "scenario",
+                            "value": "no-elegible-multiactividad",
+                            "invert": false,
+                            "operator": "equals"
+                        }
+                    ],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false,
+                    "crudKey": "id",
+                    "callbacks": []
+                },
+                {
+                    "uuid": "a1b2c3d4-0003-4000-8000-000000000004",
+                    "body": "{\n  \"elegible\": false,\n  \"motivoNoElegible\": \"TRATAMIENTO_FISCAL_ESPECIAL\",\n  \"mensajeUsuario\": \"Tu actividad tiene tratamiento fiscal especial. Debes presentar desde la aplicacion completa.\",\n  \"linkLegacy\": \"/IBPresentaciones/preInicioDDJJ.do\",\n  \"ventanaMeses\": 3,\n  \"actividadUnica\": null,\n  \"periodosPresentables\": [],\n  \"historialReciente\": []\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "No elegible - tratamiento fiscal",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "query",
+                            "modifier": "scenario",
+                            "value": "no-elegible-tratamiento",
+                            "invert": false,
+                            "operator": "equals"
+                        }
+                    ],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false,
+                    "crudKey": "id",
+                    "callbacks": []
+                },
+                {
+                    "uuid": "a1b2c3d4-0003-4000-8000-000000000005",
+                    "body": "{\n  \"elegible\": true,\n  \"motivoNoElegible\": null,\n  \"ventanaMeses\": 3,\n  \"actividadUnica\": {\n    \"codigo\": \"620100\",\n    \"descripcion\": \"Servicios profesionales\",\n    \"alicuotaVigente\": 3.50,\n    \"tipoHost\": \"G\",\n    \"codigoTratamientoFiscal\": 0\n  },\n  \"periodosPresentables\": [\n    { \"periodo\": \"2026-02\", \"periodoDisplay\": \"Febrero 2026\", \"vencimiento\": \"2026-02-28\", \"estado\": \"NO_PRESENTADA\" }\n  ],\n  \"alertaPeriodosFaltantes\": [\n    { \"periodo\": \"2025-12\", \"periodoDisplay\": \"Diciembre 2025\", \"mensaje\": \"Tenes una DDJJ previa sin presentar. Podes continuar con el periodo actual, pero se recomienda regularizar en la aplicacion completa.\" }\n  ],\n  \"historialReciente\": [\n    {\n      \"periodo\": \"2025-12\",\n      \"periodoDisplay\": \"Diciembre 2025\",\n      \"estado\": \"NO_PRESENTADA\",\n      \"nroComprobante\": null,\n      \"fechaCierre\": null,\n      \"montoDeclarado\": null,\n      \"linkLegacy\": \"/IBPresentaciones/preInicioDDJJ.do?anio=2025&mes=12\"\n    },\n    {\n      \"periodo\": \"2025-11\",\n      \"periodoDisplay\": \"Noviembre 2025\",\n      \"estado\": \"PRESENTADA\",\n      \"nroComprobante\": 987123,\n      \"fechaCierre\": \"2025-12-10T11:05:00Z\",\n      \"montoDeclarado\": 142000.00,\n      \"impuestoPagado\": 4970.00,\n      \"linkLegacy\": \"/IBPresentaciones/verDJ.do?nroComprobante=987123\"\n    }\n  ]\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Elegible con periodo previo faltante (Alt 2)",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "query",
+                            "modifier": "scenario",
+                            "value": "elegible-con-alerta",
+                            "invert": false,
+                            "operator": "equals"
+                        }
+                    ],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false,
+                    "crudKey": "id",
+                    "callbacks": []
+                }
+            ],
+            "responseMode": null,
+            "streamingMode": null,
+            "streamingInterval": 0
+        },
+        {
+            "uuid": "a1b2c3d4-0004-4000-8000-000000000001",
+            "type": "http",
+            "documentation": "Preview de DDJJ simple: calcula liquidacion con deducciones/SAF/copret precargados desde host, sin persistir. Lo usa la pantalla de confirmacion.",
+            "method": "post",
+            "endpoint": "api/v1/ddjj-simple/preview",
+            "responses": [
+                {
+                    "uuid": "a1b2c3d4-0004-4000-8000-000000000002",
+                    "body": "{\n  \"periodo\": \"{{body 'periodo'}}\",\n  \"periodoDisplay\": \"Febrero 2026\",\n  \"montoDeclarado\": {{body 'montoImponible'}},\n  \"ingresoAnioAnterior\": 163200.00,\n  \"alicuota\": 3.50,\n  \"subtotalAPagar\": 6304.50,\n  \"descuentos\": {\n    \"creditoFiscalCopret\": 1400.00,\n    \"deducciones\": 3000.00,\n    \"saldoAFavor\": 100.00,\n    \"detalleDeducciones\": [\n      { \"tipo\": \"RETENCION\", \"agente\": \"Banco Provincia\", \"importe\": 1200.00, \"fecha\": \"2026-02-10\" },\n      { \"tipo\": \"PERCEPCION\", \"agente\": \"Proveedor XYZ SA\", \"importe\": 1800.00, \"fecha\": \"2026-02-18\" }\n    ]\n  },\n  \"impuestoAPagar\": 5908.50,\n  \"fechaVencimiento\": \"2026-02-28\"\n}",
+                    "latency": 0,
+                    "statusCode": 200,
+                    "label": "Preview estandar",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true,
+                    "crudKey": "id",
+                    "callbacks": []
+                },
+                {
+                    "uuid": "a1b2c3d4-0004-4000-8000-000000000003",
+                    "body": "{\n  \"error\": \"MONTO_INVALIDO\",\n  \"mensaje\": \"El monto imponible debe ser mayor o igual a 0.\"\n}",
+                    "latency": 0,
+                    "statusCode": 422,
+                    "label": "Error de validacion",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "body",
+                            "modifier": "montoImponible",
+                            "value": "-",
+                            "invert": false,
+                            "operator": "regex"
+                        }
+                    ],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false,
+                    "crudKey": "id",
+                    "callbacks": []
+                }
+            ],
+            "responseMode": null,
+            "streamingMode": null,
+            "streamingInterval": 0
+        },
+        {
+            "uuid": "a1b2c3d4-0005-4000-8000-000000000001",
+            "type": "http",
+            "documentation": "Confirma y cierra la DDJJ simple. Crea el Dj en Oracle + impacta en host. Idempotencia manejada por legacy (existeDJ xPeriodo).",
+            "method": "post",
+            "endpoint": "api/v1/ddjj-simple/confirmar",
+            "responses": [
+                {
+                    "uuid": "a1b2c3d4-0005-4000-8000-000000000002",
+                    "body": "{\n  \"nroComprobante\": 123456789,\n  \"estado\": \"CERRADA\",\n  \"periodo\": \"{{body 'periodo'}}\",\n  \"montoDeclarado\": {{body 'montoImponible'}},\n  \"impuestoPagado\": 5908.50,\n  \"fechaCierre\": \"{{now 'YYYY-MM-DDTHH:mm:ssZ'}}\",\n  \"fechaVencimiento\": \"2026-02-28\",\n  \"pdfUrl\": \"/api/v1/ddjj-simple/123456789/comprobante.pdf\",\n  \"linkLegacy\": \"/IBPresentaciones/verDJ.do?nroComprobante=123456789\"\n}",
+                    "latency": 800,
+                    "statusCode": 201,
+                    "label": "Cierre OK",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": true,
+                    "crudKey": "id",
+                    "callbacks": []
+                },
+                {
+                    "uuid": "a1b2c3d4-0005-4000-8000-000000000003",
+                    "body": "{\n  \"error\": \"DDJJ_YA_EXISTENTE\",\n  \"mensaje\": \"Ya existe una DDJJ presentada para este periodo. Si queres rectificarla debes hacerlo desde la aplicacion completa.\",\n  \"nroComprobanteExistente\": 987654,\n  \"linkLegacy\": \"/IBPresentaciones/verDJ.do?nroComprobante=987654\"\n}",
+                    "latency": 0,
+                    "statusCode": 409,
+                    "label": "DDJJ ya existente (idempotencia legacy)",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "body",
+                            "modifier": "periodo",
+                            "value": "2025-12",
+                            "invert": false,
+                            "operator": "equals"
+                        }
+                    ],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false,
+                    "crudKey": "id",
+                    "callbacks": []
+                },
+                {
+                    "uuid": "a1b2c3d4-0005-4000-8000-000000000004",
+                    "body": "{\n  \"error\": \"HOST_NO_DISPONIBLE\",\n  \"mensaje\": \"No se pudo impactar la presentacion en el host. La DDJJ quedo en estado PENDIENTE y se reintentara. Podes volver a intentar el cierre.\",\n  \"nroComprobantePendiente\": 123456790,\n  \"reintentable\": true\n}",
+                    "latency": 0,
+                    "statusCode": 502,
+                    "label": "Error host (queda pendiente)",
+                    "headers": [],
+                    "bodyType": "INLINE",
+                    "filePath": "",
+                    "databucketID": "",
+                    "sendFileAsBody": false,
+                    "rules": [
+                        {
+                            "target": "body",
+                            "modifier": "periodo",
+                            "value": "1999-01",
+                            "invert": false,
+                            "operator": "equals"
+                        }
+                    ],
+                    "rulesOperator": "OR",
+                    "disableTemplating": false,
+                    "fallbackTo404": false,
+                    "default": false,
+                    "crudKey": "id",
+                    "callbacks": []
+                }
+            ],
+            "responseMode": null,
+            "streamingMode": null,
+            "streamingInterval": 0
+        }
+    ],
+    "rootChildren": [
+        { "type": "route", "uuid": "a1b2c3d4-0002-4000-8000-000000000001" },
+        { "type": "route", "uuid": "a1b2c3d4-0003-4000-8000-000000000001" },
+        { "type": "route", "uuid": "a1b2c3d4-0004-4000-8000-000000000001" },
+        { "type": "route", "uuid": "a1b2c3d4-0005-4000-8000-000000000001" }
+    ],
+    "proxyMode": false,
+    "proxyHost": "",
+    "proxyRemovePrefix": false,
+    "tlsOptions": {
+        "enabled": false,
+        "type": "CERT",
+        "pfxPath": "",
+        "certPath": "",
+        "keyPath": "",
+        "caPath": "",
+        "passphrase": ""
+    },
+    "cors": true,
+    "headers": [
+        { "key": "Content-Type", "value": "application/json" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Origin, Accept, Authorization, Content-Length, X-Requested-With" }
+    ],
+    "proxyReqHeaders": [ { "key": "", "value": "" } ],
+    "proxyResHeaders": [ { "key": "", "value": "" } ],
+    "data": [],
+    "callbacks": []
+}

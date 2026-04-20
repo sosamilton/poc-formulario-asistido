@@ -8,3 +8,9 @@ services:
     volumes:
       - ./iibb.json:/data/iibb.json:ro
     restart: unless-stopped
+
+  mockoon-simple:
+    image: mockoon/cli:latest
+    command: ["--data", "/data/iibb-simple.json", "--port", "3002"]
+    ports: ["3002:3002"]
+    volumes: ["./iibb-simple.json:/data/iibb-simple.json"]
