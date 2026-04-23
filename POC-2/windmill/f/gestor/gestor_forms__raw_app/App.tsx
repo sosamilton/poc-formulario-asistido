@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { SurveyCreatorComponent, SurveyCreator } from 'survey-creator-react'
+import { surveyLocalization } from 'survey-core'
+import { editorLocalization } from 'survey-creator-core'
+import 'survey-core/i18n/spanish'
 import 'survey-core/defaultV2.min.css'
+import 'survey-creator-core/i18n/spanish'
 import 'survey-creator-core/survey-creator-core.min.css'
 import './index.css'
 
@@ -17,6 +21,14 @@ type Form = {
 }
 
 type View = 'list' | 'create' | 'edit'
+
+surveyLocalization.locales['es'] = {
+    ...surveyLocalization.locales['es'],
+    answeredQuestionsText: 'Respondidas {0} de {1}'
+}
+
+surveyLocalization.defaultLocale = 'es'
+editorLocalization.currentLocale = 'es'
 
 const App = () => {
     const [currentView, setCurrentView] = useState<View>('list')
@@ -174,6 +186,7 @@ const App = () => {
 
     function startCreate() {
         const newCreator = new SurveyCreator(creatorOptions)
+        newCreator.locale = 'es'
         setCreator(newCreator)
         setCurrentView('create')
         setSelectedForm(null)
@@ -184,6 +197,7 @@ const App = () => {
         try {
             const runtime = await callScript('f/forms/get_runtime', { slug: form.slug })
             const newCreator = new SurveyCreator(creatorOptions)
+            newCreator.locale = 'es'
             newCreator.JSON = runtime.schema
             setCreator(newCreator)
             setSelectedForm(form)
