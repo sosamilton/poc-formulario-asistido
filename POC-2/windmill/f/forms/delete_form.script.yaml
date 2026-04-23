@@ -1,0 +1,18 @@
+summary: Eliminar formulario
+description: Elimina un formulario (soft delete por defecto, hard delete opcional)
+lock: '!inline f/forms/delete_form.script.lock'
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    hard_delete:
+      type: boolean
+      description: Si es true, elimina permanentemente. Si es false, solo marca como
+        eliminado
+      default: false
+    slug:
+      type: string
+      description: Slug del formulario a eliminar
+  required:
+    - slug

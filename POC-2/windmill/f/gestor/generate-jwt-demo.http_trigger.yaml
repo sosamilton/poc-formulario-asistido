@@ -1,0 +1,17 @@
+summary: generate-jwt-demo
+description: generate-jwt-demo
+authentication_method: none
+authentication_resource_path: ''
+email: admin@windmill.dev
+http_method: get
+is_flow: false
+is_static_website: false
+mode: enabled
+raw_string: false
+request_type: sync
+route_path: generate-jwt-demo
+route_path_key: generate-jwt-demo
+script_path: f/plugins/ddjj/generate_test_jwt
+static_asset_config: null
+workspaced_route: false
+wrap_body: false

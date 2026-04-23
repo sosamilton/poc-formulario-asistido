@@ -31,7 +31,10 @@ export async function main(): Promise<string> {
     permissions: ["IngresosBrutos|Contribuyente|Contribuyente"],
     fullname: "JUAN PALOTE",
     login: "20345534234",
-    type: "EXTERNO"
+    type: "EXTERNO",
+    realm_access: {
+      roles: ["contribuyente", "contador"]
+    }
   };
   
   const headerEncoded = base64UrlEncode(JSON.stringify(header));

@@ -42,9 +42,11 @@ def main(token: str) -> Dict[str, Any]:
         payload_json = base64.b64decode(payload_b64)
         payload = json.loads(payload_json)
         
-        # Verificar si el token ha expirado
+        # Verificar si el token ha expirado (solo en producción)
         import time
-        if 'exp' in payload:
+        import os
+        is_dev = os.getenv("ENVIRONMENT", "development") == "development"
+        if 'exp' in payload and not is_dev:
             if payload['exp'] < time.time():
                 raise Exception("Token expirado")
         
@@ -53,7 +55,7 @@ def main(token: str) -> Dict[str, Any]:
             "cuit": payload.get("identifier") or payload.get("cuit") or payload.get("login"),
             "nombre": payload.get("fullname") or payload.get("name", "Usuario"),
             "email": payload.get("email", ""),
-            "roles": payload.get("realm_access", {}).get("roles", []),
+            "roles": payload.get("realm_access", {}).get("roles", []) or payload.get("roles", []),
             "permissions": payload.get("permissions", []),
             "type": payload.get("type", "EXTERNO")
         }

@@ -55,9 +55,9 @@ services:
         condition: service_healthy
     volumes:
       - worker_logs:/tmp/windmill/logs
-    networks:
-      - default
-      - omnicanalidad-smtp
+    # networks:
+    #   - default
+    #   - omnicanalidad-smtp
     logging: *default-logging
 
   windmill_worker:
@@ -181,7 +181,7 @@ services:
   #   - ENABLE_MULTIPLAYER=false - Real-time collaboration (Enterprise Edition)
   #   - ENABLE_DEBUGGER=false - Interactive debugging via DAP WebSocket
   windmill_extra:
-    image: ghcr.io/windmill-labs/windmill-extra:latest
+    image: ghcr.io/windmill-labs/windmill-extra:1.651.1
     pull_policy: always
     restart: unless-stopped
     expose:
@@ -219,10 +219,10 @@ services:
       # - BASE_URL=mydomain.com # Uncomment and comment line above to enable HTTPS handling by Caddy
     logging: *default-logging
 
-networks:
-  omnicanalidad-smtp:
-    external: true
-    name: omnicanalidad-smtp
+# networks:
+#   omnicanalidad-smtp:
+#     external: true
+#     name: omnicanalidad-smtp
 
 volumes:
   db_data: null

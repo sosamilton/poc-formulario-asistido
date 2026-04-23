@@ -1,0 +1,17 @@
+summary: init_form_ddjj
+description: init_form_ddjj
+authentication_method: none
+authentication_resource_path: ''
+email: admin@windmill.dev
+http_method: post
+is_flow: true
+is_static_website: false
+mode: enabled
+raw_string: false
+request_type: sync
+route_path: init_form_ddjj
+route_path_key: init_form_ddjj
+script_path: f/form_lifecycle/init_flow
+static_asset_config: null
+workspaced_route: false
+wrap_body: false

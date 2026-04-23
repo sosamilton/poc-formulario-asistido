@@ -1,0 +1,43 @@
+summary: Guardar submission de formulario
+description: Crea o actualiza una submission de formulario
+lock: '!inline f/forms/save_submission.script.lock'
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    version:
+      type: integer
+      description: Versión del formulario
+    created_by:
+      type: string
+      description: Usuario que crea la submission
+      default: anonymous
+    data:
+      type: object
+      description: Datos del formulario
+    form_id:
+      type: string
+      description: ID del formulario
+    metadata:
+      type: object
+      description: Metadata adicional
+    status:
+      type: string
+      description: Estado de la submission
+      default: draft
+      enum:
+        - draft
+        - submitted
+        - completed
+        - failed
+    submission_id:
+      type: string
+      description: ID de submission existente (para actualizar)
+    validation_errors:
+      type: object
+      description: Errores de validación
+  required:
+    - form_id
+    - version
+    - data

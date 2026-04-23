@@ -1,0 +1,14 @@
+summary: Obtener períodos adeudados
+description: Recupera lista de períodos sin DDJJ presentada desde API Mockoon
+lock: '!inline f/plugins/ddjj/fetch_periodos_adeudados.script.lock'
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    cuit:
+      type: string
+      description: Número de CUIT a consultar
+      default: ''
+  required:
+    - cuit

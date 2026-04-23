@@ -1,0 +1,8 @@
+summary: adminsitraro de formularios
+display_name: gestor
+extra_perms:
+  u/admin: true
+  u/admin2: true
+owners:
+  - u/admin2
+  - u/admin

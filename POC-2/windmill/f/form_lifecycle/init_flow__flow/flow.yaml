@@ -1,0 +1,197 @@
+summary: Inicializar flujo de formulario DDJJ con token JWT
+description: |-
+  Flujo completo para inicializar formulario DDJJ:
+  1. Parsear token JWT para extraer CUIT
+  2. Obtener formulario por slug hardcodeado
+  3. Obtener runtime (JSON schema) del formulario
+  4. Ejecutar consultas paralelas a APIs (padrón, historial, períodos, alícuota)
+  5. Transformar el JSON del formulario con datos precargados
+  6. Crear submission con datos iniciales
+value:
+  modules:
+    - id: parse_jwt
+      summary: Extraer CUIT del token JWT
+      value:
+        type: script
+        input_transforms:
+          token:
+            type: javascript
+            expr: flow_input.token
+        path: f/plugins/ddjj/parse_jwt
+    - id: set_slug
+      summary: Hardcodear slug del formulario
+      value:
+        type: rawscript
+        content: '!inline hardcodear_slug_del_formulario.ts'
+        input_transforms: {}
+        lock: '!inline hardcodear_slug_del_formulario.lock'
+        language: bun
+    - id: get_form
+      summary: Obtener formulario por slug
+      value:
+        type: script
+        input_transforms:
+          slug:
+            type: javascript
+            expr: results.set_slug.slug
+        path: f/forms/get_form
+    - id: get_runtime
+      summary: Obtener runtime (schema JSON) del formulario
+      value:
+        type: script
+        input_transforms:
+          slug:
+            type: javascript
+            expr: results.set_slug.slug
+        path: f/forms/get_runtime
+    - id: parallel_fetch
+      summary: Obtener datos en paralelo (padrón, historial, períodos)
+      value:
+        type: branchall
+        branches:
+          - summary: Obtener datos del padrón
+            modules:
+              - id: fetch_padron
+                value:
+                  type: script
+                  input_transforms:
+                    cuit:
+                      type: javascript
+                      expr: results.parse_jwt.cuit
+                  path: f/plugins/ddjj/fetch_padron
+            expr: ''
+            parallel: true
+            skip_failure: true
+          - summary: Obtener datos históricos
+            modules:
+              - id: fetch_historial
+                value:
+                  type: script
+                  input_transforms:
+                    cuit:
+                      type: javascript
+                      expr: results.parse_jwt.cuit
+                  path: f/plugins/ddjj/fetch_historial
+            expr: ''
+            parallel: true
+            skip_failure: true
+          - summary: Obtener períodos adeudados
+            modules:
+              - id: fetch_periodos
+                value:
+                  type: script
+                  input_transforms:
+                    cuit:
+                      type: javascript
+                      expr: results.parse_jwt.cuit
+                  path: f/plugins/ddjj/fetch_periodos_adeudados
+            expr: ''
+            parallel: true
+            skip_failure: true
+        parallel: true
+    - id: fetch_alicuota
+      summary: Obtener alícuota por código de actividad
+      value:
+        type: script
+        input_transforms:
+          codigoActividad:
+            type: javascript
+            expr: results.fetch_padron.codigoActividad
+        path: f/plugins/ddjj/fetch_alicuota
+    - id: transform_schema
+      summary: Transformar JSON del formulario con datos precargados
+      value:
+        type: rawscript
+        content: '!inline transformar_json_del_formulario_con_datos_precargados.ts'
+        input_transforms:
+          actividad:
+            type: javascript
+            expr: results.fetch_padron.actividad
+          alicuota:
+            type: javascript
+            expr: results.fetch_alicuota.alicuota
+          codigoActividad:
+            type: javascript
+            expr: results.fetch_padron.codigoActividad
+          cuit:
+            type: javascript
+            expr: results.parse_jwt.cuit
+          periodosAdeudados:
+            type: javascript
+            expr: results.fetch_periodos.periodosAdeudados
+          razonSocial:
+            type: javascript
+            expr: results.fetch_padron.razonSocial
+          schema:
+            type: javascript
+            expr: results.get_runtime.schema
+        lock: '!inline transformar_json_del_formulario_con_datos_precargados.lock'
+        language: bun
+    - id: save_submission
+      summary: Guardar o actualizar submission en estado draft
+      value:
+        type: script
+        input_transforms:
+          version:
+            type: javascript
+            expr: results.get_runtime.version
+          cuit:
+            type: javascript
+            expr: results.parse_jwt.cuit
+          data:
+            type: javascript
+            expr: results.transform_schema.schema
+          form_id:
+            type: javascript
+            expr: results.get_runtime.form_id
+          metadata:
+            type: javascript
+            expr: |
+              ({
+                cuit: results.parse_jwt.cuit,
+                razonSocial: results.fetch_padron.razonSocial,
+                actividad: results.fetch_padron.actividad,
+                codigoActividad: results.fetch_padron.codigoActividad,
+                regimen: results.fetch_padron.regimen,
+                alicuota: results.fetch_alicuota.alicuota,
+                montoAnterior: results.fetch_historial?.montoAnterior,
+                fechaUltimaDDJJ: results.fetch_historial?.fechaUltimaDDJJ,
+                periodosAdeudados: results.fetch_periodos.periodosAdeudados
+              })
+        path: f/forms/find_or_create_submission
+    - id: build_response
+      summary: Construir respuesta final
+      value:
+        type: rawscript
+        content: '!inline construir_respuesta_final.ts'
+        input_transforms:
+          cuit:
+            type: javascript
+            expr: results.parse_jwt.cuit
+          razonSocial:
+            type: javascript
+            expr: results.fetch_padron.razonSocial
+          runtime:
+            type: javascript
+            expr: results.get_runtime
+          submission:
+            type: javascript
+            expr: results.save_submission
+          transformedData:
+            type: javascript
+            expr: results.transform_schema
+        lock: '!inline construir_respuesta_final.lock'
+        language: bun
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - token
+  properties:
+    token:
+      type: string
+      description: 'Token JWT desde request. Generar uno usando: wmill script run
+        f/plugins/ddjj/generate_test_jwt'
+      default: GENERATE_TOKEN_FIRST
+  required:
+    - token

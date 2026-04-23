@@ -1,0 +1,36 @@
+summary: Actualizar formulario existente
+description: Actualiza los datos de un formulario y crea una nueva versión si se
+  modifica el schema
+lock: '!inline f/forms/update_form.script.lock'
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    name:
+      type: string
+      description: Nuevo nombre del formulario
+    description:
+      type: string
+      description: Nueva descripción
+    category:
+      type: string
+      description: Nueva categoría
+    config:
+      type: object
+      description: Nueva configuración (crea nueva versión)
+    is_public:
+      type: boolean
+      description: Si el formulario es público
+    schema_json:
+      type: object
+      description: Nuevo schema SurveyJS (crea nueva versión)
+    slug:
+      type: string
+      description: Slug del formulario a actualizar
+    updated_by:
+      type: string
+      description: Usuario que actualiza
+      default: system
+  required:
+    - slug

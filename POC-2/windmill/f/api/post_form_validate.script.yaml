@@ -1,0 +1,20 @@
+summary: API - Validar formulario
+description: Endpoint para validar datos de formulario
+lock: '!inline f/api/post_form_validate.script.lock'
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    version:
+      type: integer
+      description: Versión del formulario
+    data:
+      type: object
+      description: Datos a validar
+    slug:
+      type: string
+      description: Slug del formulario
+  required:
+    - slug
+    - data

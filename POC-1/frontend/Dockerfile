@@ -1,8 +1,8 @@
 # Dockerfile para desarrollo del frontend
-FROM node:20-alpine
+FROM node:22
 
 # Instalar dependencias del sistema
-RUN apk add --no-cache git
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 # Crear directorio de trabajo
 WORKDIR /app

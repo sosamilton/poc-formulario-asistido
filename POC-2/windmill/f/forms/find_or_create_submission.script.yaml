@@ -1,0 +1,31 @@
+summary: Find or create submission for CUIT and form
+description: |-
+  Busca un submission existente en estado 'draft' para el CUIT y form_id dados.
+  Si existe, lo actualiza con los nuevos datos.
+  Si no existe o todos están 'completed', crea uno nuevo.
+lock: '!inline f/forms/find_or_create_submission.script.lock'
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    version:
+      type: integer
+      description: Versión del formulario
+    cuit:
+      type: string
+      description: CUIT del contribuyente
+    data:
+      type: object
+      description: Datos del formulario (schema transformado)
+    form_id:
+      type: string
+      description: ID del formulario
+    metadata:
+      type: object
+      description: Metadata adicional (datos de APIs, etc)
+  required:
+    - form_id
+    - version
+    - cuit
+    - data

@@ -1,0 +1,38 @@
+summary: Crear nuevo formulario
+description: Crea un formulario con su schema SurveyJS inicial en la versión 1
+lock: '!inline f/forms/create_form.script.lock'
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    name:
+      type: string
+      description: Nombre del formulario
+    description:
+      type: string
+      description: Descripción del formulario
+    category:
+      type: string
+      description: Categoría del formulario
+    config:
+      type: object
+      description: Configuración del formulario (hooks, UI, etc)
+    created_by:
+      type: string
+      description: Usuario que crea el formulario
+      default: system
+    is_public:
+      type: boolean
+      description: Si el formulario es público
+      default: false
+    schema_json:
+      type: object
+      description: Schema SurveyJS del formulario
+    slug:
+      type: string
+      description: Identificador único del formulario
+  required:
+    - slug
+    - name
+    - schema_json

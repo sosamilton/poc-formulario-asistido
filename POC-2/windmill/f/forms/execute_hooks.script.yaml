@@ -1,0 +1,24 @@
+summary: Ejecutar hooks en secuencia
+description: Ejecuta una lista de hooks (scripts) en orden con contexto compartido
+lock: '!inline f/forms/execute_hooks.script.lock'
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    context:
+      type: object
+      description: Contexto compartido para todos los hooks
+    hooks:
+      type: array
+      description: Lista de hooks a ejecutar
+      items:
+        type: object
+        properties:
+          args:
+            type: object
+          path:
+            type: string
+  required:
+    - hooks
+    - context

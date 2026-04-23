@@ -7,19 +7,19 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'https://windmill.mdsoluciones.ar',
+        target: 'http://localhost',
         changeOrigin: true
       },
       '/config': {
-        target: 'https://windmill.mdsoluciones.ar',
+        target: 'http://localhost',
         changeOrigin: true
       },
       '/forms': {
-        target: 'https://windmill.mdsoluciones.ar',
+        target: 'http://localhost',
         changeOrigin: true
       },
       '/ddjj': {
-        target: 'https://windmill.mdsoluciones.ar',
+        target: 'http://localhost',
         changeOrigin: true
       }
     }

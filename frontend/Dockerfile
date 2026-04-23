@@ -1,13 +1,6 @@
-# Dockerfile para frontend (Vite + SurveyJS)
-
-# Etapa 1: build
-FROM node:20-alpine AS build
-
+FROM node:20-alpine AS deps
 WORKDIR /app
-
-# Copiar archivos de dependencias
 COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
-
 RUN \
   if [ -f package-lock.json ]; then npm ci; \
   elif [ -f pnpm-lock.yaml ]; then npm install -g pnpm && pnpm install; \
@@ -15,26 +8,32 @@ RUN \
   else npm install; \
   fi
 
-# Copiar código fuente
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Args para variables VITE_* (se pasan en build)
-ARG VITE_WINDMILL_URL
-ARG VITE_AUTH_MODE
-ARG VITE_WINDMILL_WORKSPACE
+# Variables públicas para Next (se leen en build y runtime)
+ARG NEXT_PUBLIC_WINDMILL_URL
+ARG NEXT_PUBLIC_AUTH_MODE
+ARG NEXT_PUBLIC_WINDMILL_WORKSPACE
+ENV NEXT_PUBLIC_WINDMILL_URL=$NEXT_PUBLIC_WINDMILL_URL \
+    NEXT_PUBLIC_AUTH_MODE=$NEXT_PUBLIC_AUTH_MODE \
+    NEXT_PUBLIC_WINDMILL_WORKSPACE=$NEXT_PUBLIC_WINDMILL_WORKSPACE
 
-ENV VITE_WINDMILL_URL=$VITE_WINDMILL_URL \
-    VITE_AUTH_MODE=$VITE_AUTH_MODE \
-    VITE_WINDMILL_WORKSPACE=$VITE_WINDMILL_WORKSPACE
-
-# Build
 RUN npm run build
 
-# Etapa 2: Nginx estático
-FROM nginx:1.27-alpine AS runtime
+FROM node:20-alpine AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+# La carpeta public es opcional; si no existe, omitimos la copia
 
-COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 3000
+ENV HOSTNAME=0.0.0.0 PORT=3000
+CMD ["node", "server.js"]
 
-EXPOSE 80
+FROM builder AS dev
+CMD ["npm", "run", "dev"]
 
-CMD ["nginx", "-g", "daemon off;"]

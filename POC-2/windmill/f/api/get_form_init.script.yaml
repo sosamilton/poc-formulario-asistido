@@ -1,0 +1,23 @@
+summary: API - Inicializar formulario
+description: Endpoint para inicializar un formulario con datos precargados
+lock: '!inline f/api/get_form_init.script.lock'
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    version:
+      type: integer
+      description: Versión específica del formulario
+    created_by:
+      type: string
+      description: Usuario que inicia el formulario
+      default: anonymous
+    initial_data:
+      type: object
+      description: Datos iniciales
+    slug:
+      type: string
+      description: Slug del formulario
+  required:
+    - slug

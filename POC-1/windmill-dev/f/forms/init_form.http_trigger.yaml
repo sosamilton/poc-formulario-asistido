@@ -2,7 +2,7 @@ summary: guardado
 description: ''
 authentication_method: none
 authentication_resource_path: ''
-email: admin@arba.gob.ar
+email: admin@windmill.dev
 http_method: post
 is_flow: false
 is_static_website: false

@@ -1,0 +1,16 @@
+summary: Obtener runtime del formulario
+description: Obtiene el schema y configuración activa de un formulario
+lock: '!inline f/forms/get_runtime.script.lock'
+kind: script
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  properties:
+    version:
+      type: integer
+      description: Versión específica (opcional, usa active_version si no se especifica)
+    slug:
+      type: string
+      description: Slug del formulario
+  required:
+    - slug

@@ -1,0 +1,137 @@
+summary: Submit form workflow
+description: Validates, saves, and submits form data
+value:
+  modules:
+    - id: validate_data
+      value:
+        type: flow
+        input_transforms:
+          version:
+            type: javascript
+            expr: flow_input.version
+          data:
+            type: javascript
+            expr: flow_input.data
+          slug:
+            type: javascript
+            expr: flow_input.slug
+        path: f/formularios/form_lifecycle/validate_flow
+    - id: check_validation
+      value:
+        type: script
+        content: >
+          export async function main(validation: any) {
+            if (!validation.valid) {
+              throw new Error(`Validation failed: ${JSON.stringify(validation.errors)}`);
+            }
+            return { valid: true };
+          }
+        input_transforms:
+          validation:
+            type: javascript
+            expr: results.validate_data
+        path: hub/3930/deno/inline_script
+    - id: get_runtime
+      value:
+        type: script
+        input_transforms:
+          version:
+            type: javascript
+            expr: flow_input.version
+          slug:
+            type: javascript
+            expr: flow_input.slug
+        path: f/formularios/forms/get_runtime
+    - id: save_submission
+      value:
+        type: script
+        input_transforms:
+          version:
+            type: javascript
+            expr: results.get_runtime.version
+          data:
+            type: javascript
+            expr: flow_input.data
+          form_id:
+            type: javascript
+            expr: results.get_runtime.form_id
+          metadata:
+            type: javascript
+            expr: flow_input.metadata || {}
+          status:
+            type: javascript
+            expr: "'submitted'"
+          submission_id:
+            type: javascript
+            expr: flow_input.submission_id
+        path: f/formularios/forms/save_submission
+    - id: execute_submit_hooks
+      value:
+        type: script
+        input_transforms:
+          context:
+            type: javascript
+            expr: |
+              ({
+                submission_id: results.save_submission.id,
+                form_id: results.get_runtime.form_id,
+                slug: results.get_runtime.slug,
+                version: results.get_runtime.version,
+                data: flow_input.data,
+                metadata: flow_input.metadata || {}
+              })
+          hooks:
+            type: javascript
+            expr: |
+              results.get_runtime.config?.hooks?.submit || []
+        path: f/formularios/forms/execute_hooks
+    - id: update_submission_status
+      value:
+        type: script
+        input_transforms:
+          version:
+            type: javascript
+            expr: results.get_runtime.version
+          data:
+            type: javascript
+            expr: flow_input.data
+          form_id:
+            type: javascript
+            expr: results.get_runtime.form_id
+          metadata:
+            type: javascript
+            expr: |
+              ({
+                ...(flow_input.metadata || {}),
+                submit_results: results.execute_submit_hooks
+              })
+          status:
+            type: javascript
+            expr: |
+              results.execute_submit_hooks.success ? 'completed' : 'failed'
+          submission_id:
+            type: javascript
+            expr: results.save_submission.id
+        path: f/formularios/forms/save_submission
+    - id: build_response
+      value:
+        type: script
+        content: |
+          export async function main(submission: any, submit_results: any) {
+            return {
+              success: submit_results.success,
+              submission_id: submission.id,
+              status: submission.status,
+              timestamp: submission.updated_at,
+              results: submit_results.results
+            };
+          }
+        input_transforms:
+          submission:
+            type: javascript
+            expr: results.update_submission_status
+          submit_results:
+            type: javascript
+            expr: results.execute_submit_hooks
+        path: hub/3930/deno/inline_script
+schema: null
