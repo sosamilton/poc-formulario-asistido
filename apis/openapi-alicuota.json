@@ -1,0 +1,675 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "Servicios Alicuotas API",
+        "description": "Servicios de consultas de alicuotas en Padrones",
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://springdoc.org"
+        },
+        "version": "v0.0.1"
+    },
+    "externalDocs": {
+        "description": "Servicios Alicuotas API",
+        "url": "https://gitlab.arba.gov.ar/sisweb/serviciosalicuotasapi"
+    },
+    "servers": [
+        {
+            "url": "/ServiciosAlicuotasAPI"
+        }
+    ],
+    "security": [
+        {
+            "bearerAuth": []
+        }
+    ],
+    "paths": {
+        "/alicuotas": {
+            "get": {
+                "tags": [
+                    "consulta-alicuota-controller"
+                ],
+                "summary": "Consulta la alícuota de un contribuyente",
+                "description": "Retorna la alícuota aplicable según CUIT del agente, actividad, régimen y CUIT del contribuyente.",
+                "operationId": "consultar",
+                "parameters": [
+                    {
+                        "name": "cuitAR",
+                        "in": "query",
+                        "description": "CUIT del Agente de Recaudación (11 dígitos)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 20304050607
+                    },
+                    {
+                        "name": "actividadAR",
+                        "in": "query",
+                        "description": "Actividad del Agente (13, 14 o 15)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 13
+                    },
+                    {
+                        "name": "regimenAR",
+                        "in": "query",
+                        "description": "Régimen ('R')",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "R"
+                    },
+                    {
+                        "name": "cuitContribuyente",
+                        "in": "query",
+                        "description": "CUIT del Contribuyente (11 dígitos)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 27123456789
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Consulta procesada correctamente",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConsultaAlicuotaResponseDTO"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RestFullErrorDTO"
+                                },
+                                "examples": {
+                                    "CUIT inválida": {
+                                        "summary": "Error por CUIT inválida",
+                                        "description": "Se produce cuando la CUIT no tiene el formato correcto",
+                                        "value": {
+                                            "status": "BAD_REQUEST",
+                                            "message": "Error de aplicación",
+                                            "errors": [
+                                                "La CUIT del Agente 2012345678 no tiene el formato correcto"
+                                            ],
+                                            "timestamp": "2025-09-15T13:45:30",
+                                            "path": "/alicuotas"
+                                        }
+                                    },
+                                    "Actividad inválida": {
+                                        "summary": "Error por actividad inválida",
+                                        "description": "Se produce cuando la actividad no es válida (13, 14 o 15)",
+                                        "value": {
+                                            "status": "BAD_REQUEST",
+                                            "message": "Error de aplicación",
+                                            "errors": [
+                                                "La actividad 16 no es válida. Valores permitidos: 13, 14, 15"
+                                            ],
+                                            "timestamp": "2025-09-15T13:45:30",
+                                            "path": "/alicuotas"
+                                        }
+                                    },
+                                    "Régimen inválido": {
+                                        "summary": "Error por régimen inválido",
+                                        "description": "Se produce cuando el régimen no es válido (R o P)",
+                                        "value": {
+                                            "status": "BAD_REQUEST",
+                                            "message": "Error de aplicación",
+                                            "errors": [
+                                                "El régimen X no es válido. Valores permitidos: R, P"
+                                            ],
+                                            "timestamp": "2025-09-15T13:45:30",
+                                            "path": "/alicuotas"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error inesperado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RestFullErrorDTO"
+                                },
+                                "examples": {
+                                    "Error interno": {
+                                        "summary": "Error interno del servidor",
+                                        "description": "Se produce cuando ocurre un error inesperado en el servidor",
+                                        "value": {
+                                            "status": "INTERNAL_SERVER_ERROR",
+                                            "message": "Error: TX-20250915-134530",
+                                            "errors": [
+                                                " Mensaje: Error al procesar la consulta de alícuota"
+                                            ],
+                                            "timestamp": "2025-09-15T13:45:30",
+                                            "path": "/alicuotas"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/alicuotas/regimen/consultar": {
+            "get": {
+                "tags": [
+                    "consulta-regimen-controller"
+                ],
+                "summary": "Devuelve régimen vigente para la actividad seleccionada",
+                "operationId": "consultar_1",
+                "parameters": [
+                    {
+                        "name": "actividadAR",
+                        "in": "query",
+                        "description": "Actividad del Agente",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 13
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConsultaRegimenResponseDTO"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/alicuotas/manual": {
+            "get": {
+                "tags": [
+                    "consulta-alicuota-manual-controller"
+                ],
+                "summary": "Consulta manual de alícuota con vigencia",
+                "description": "Devuelve la alícuota considerando la fecha de vigencia insertada.",
+                "operationId": "consultar_2",
+                "parameters": [
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "description": "Mes de vigencia a comprobar",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "08"
+                    },
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "description": "Año de vigencia a comprobar",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": 2024
+                    },
+                    {
+                        "name": "cuitContribuyente",
+                        "in": "query",
+                        "description": "CUIT del Contribuyente (11 dígitos)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 27123456789
+                    },
+                    {
+                        "name": "actividadAR",
+                        "in": "query",
+                        "description": "Actividad del Agente (13, 14 o 15)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 13
+                    },
+                    {
+                        "name": "regimenAR",
+                        "in": "query",
+                        "description": "Régimen ('R' o 'P')",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "R"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Consulta procesada correctamente",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConsultaAlicuotaComprobanteResponseDTO"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RestFullErrorDTO"
+                                },
+                                "examples": {
+                                    "CUIT inválida": {
+                                        "summary": "Error por CUIT inválida",
+                                        "description": "Se produce cuando la CUIT no tiene el formato correcto",
+                                        "value": {
+                                            "status": "BAD_REQUEST",
+                                            "message": "Error de aplicación",
+                                            "errors": [
+                                                "La CUIT del Contribuyente 2012345678 no tiene el formato correcto"
+                                            ],
+                                            "timestamp": "2025-09-15T13:45:30",
+                                            "path": "/alicuotas/manual"
+                                        }
+                                    },
+                                    "Actividad inválida": {
+                                        "summary": "Error por actividad inválida",
+                                        "description": "Se produce cuando la actividad no es válida (13, 14 o 15)",
+                                        "value": {
+                                            "status": "BAD_REQUEST",
+                                            "message": "Error de aplicación",
+                                            "errors": [
+                                                "La actividad 16 no es válida. Valores permitidos: 13, 14, 15"
+                                            ],
+                                            "timestamp": "2025-09-15T13:45:30",
+                                            "path": "/alicuotas/manual"
+                                        }
+                                    },
+                                    "Régimen inválido": {
+                                        "summary": "Error por régimen inválido",
+                                        "description": "Se produce cuando el régimen no es válido (R o P)",
+                                        "value": {
+                                            "status": "BAD_REQUEST",
+                                            "message": "Error de aplicación",
+                                            "errors": [
+                                                "El régimen X no es válido. Valores permitidos: R, P"
+                                            ],
+                                            "timestamp": "2025-09-15T13:45:30",
+                                            "path": "/alicuotas/manual"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error inesperado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RestFullErrorDTO"
+                                },
+                                "examples": {
+                                    "Error interno": {
+                                        "summary": "Error interno del servidor",
+                                        "description": "Se produce cuando ocurre un error inesperado en el servidor",
+                                        "value": {
+                                            "status": "INTERNAL_SERVER_ERROR",
+                                            "message": "Error: TX-20250915-134530",
+                                            "errors": [
+                                                " Mensaje: Error al procesar la consulta manual de alícuota"
+                                            ],
+                                            "timestamp": "2025-09-15T13:45:30",
+                                            "path": "/alicuotas/manual"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/alicuotas/fechaExacta": {
+            "get": {
+                "tags": [
+                    "consulta-alicuota-fecha-exacta-controller"
+                ],
+                "summary": "Consulta de alícuota válida en la fecha seleccionada ",
+                "description": "Consulta de alícuota válida en la fecha seleccionada.",
+                "operationId": "consultar_3",
+                "parameters": [
+                    {
+                        "name": "fecha",
+                        "in": "query",
+                        "description": "Fecha desde (yyyy-MM-dd)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "example": "2025-02-12"
+                    },
+                    {
+                        "name": "cuitContribuyente",
+                        "in": "query",
+                        "description": "CUIT del Contribuyente (11 dígitos)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 27123456789
+                    },
+                    {
+                        "name": "actividadAR",
+                        "in": "query",
+                        "description": "Actividad del Agente (13, 14 o 15)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 13
+                    },
+                    {
+                        "name": "regimenAR",
+                        "in": "query",
+                        "description": "Régimen ('R' o 'P')",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "R"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Consulta procesada correctamente",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConsultaAlicuotaComprobanteResponseDTO"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RestFullErrorDTO"
+                                },
+                                "examples": {
+                                    "CUIT inválida": {
+                                        "summary": "Error por CUIT inválida",
+                                        "description": "Se produce cuando la CUIT no tiene el formato correcto",
+                                        "value": {
+                                            "status": "BAD_REQUEST",
+                                            "message": "Error de aplicación",
+                                            "errors": [
+                                                "La CUIT del Contribuyente 2012345678 no tiene el formato correcto"
+                                            ],
+                                            "timestamp": "2025-09-15T13:45:30",
+                                            "path": "/alicuotas/manual"
+                                        }
+                                    },
+                                    "Actividad inválida": {
+                                        "summary": "Error por actividad inválida",
+                                        "description": "Se produce cuando la actividad no es válida (13, 14 o 15)",
+                                        "value": {
+                                            "status": "BAD_REQUEST",
+                                            "message": "Error de aplicación",
+                                            "errors": [
+                                                "La actividad 16 no es válida. Valores permitidos: 13, 14, 15"
+                                            ],
+                                            "timestamp": "2025-09-15T13:45:30",
+                                            "path": "/alicuotas/manual"
+                                        }
+                                    },
+                                    "Régimen inválido": {
+                                        "summary": "Error por régimen inválido",
+                                        "description": "Se produce cuando el régimen no es válido (R o P)",
+                                        "value": {
+                                            "status": "BAD_REQUEST",
+                                            "message": "Error de aplicación",
+                                            "errors": [
+                                                "El régimen X no es válido. Valores permitidos: R, P"
+                                            ],
+                                            "timestamp": "2025-09-15T13:45:30",
+                                            "path": "/alicuotas/manual"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error inesperado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RestFullErrorDTO"
+                                },
+                                "examples": {
+                                    "Error interno": {
+                                        "summary": "Error interno del servidor",
+                                        "description": "Se produce cuando ocurre un error inesperado en el servidor",
+                                        "value": {
+                                            "status": "INTERNAL_SERVER_ERROR",
+                                            "message": "Error: TX-20250915-134530",
+                                            "errors": [
+                                                " Mensaje: Error al procesar la consulta manual de alícuota"
+                                            ],
+                                            "timestamp": "2025-09-15T13:45:30",
+                                            "path": "/alicuotas/manual"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "RestFullErrorDTO": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "100 CONTINUE",
+                            "101 SWITCHING_PROTOCOLS",
+                            "102 PROCESSING",
+                            "103 CHECKPOINT",
+                            "200 OK",
+                            "201 CREATED",
+                            "202 ACCEPTED",
+                            "203 NON_AUTHORITATIVE_INFORMATION",
+                            "204 NO_CONTENT",
+                            "205 RESET_CONTENT",
+                            "206 PARTIAL_CONTENT",
+                            "207 MULTI_STATUS",
+                            "208 ALREADY_REPORTED",
+                            "226 IM_USED",
+                            "300 MULTIPLE_CHOICES",
+                            "301 MOVED_PERMANENTLY",
+                            "302 FOUND",
+                            "302 MOVED_TEMPORARILY",
+                            "303 SEE_OTHER",
+                            "304 NOT_MODIFIED",
+                            "305 USE_PROXY",
+                            "307 TEMPORARY_REDIRECT",
+                            "308 PERMANENT_REDIRECT",
+                            "400 BAD_REQUEST",
+                            "401 UNAUTHORIZED",
+                            "402 PAYMENT_REQUIRED",
+                            "403 FORBIDDEN",
+                            "404 NOT_FOUND",
+                            "405 METHOD_NOT_ALLOWED",
+                            "406 NOT_ACCEPTABLE",
+                            "407 PROXY_AUTHENTICATION_REQUIRED",
+                            "408 REQUEST_TIMEOUT",
+                            "409 CONFLICT",
+                            "410 GONE",
+                            "411 LENGTH_REQUIRED",
+                            "412 PRECONDITION_FAILED",
+                            "413 PAYLOAD_TOO_LARGE",
+                            "413 REQUEST_ENTITY_TOO_LARGE",
+                            "414 URI_TOO_LONG",
+                            "414 REQUEST_URI_TOO_LONG",
+                            "415 UNSUPPORTED_MEDIA_TYPE",
+                            "416 REQUESTED_RANGE_NOT_SATISFIABLE",
+                            "417 EXPECTATION_FAILED",
+                            "418 I_AM_A_TEAPOT",
+                            "419 INSUFFICIENT_SPACE_ON_RESOURCE",
+                            "420 METHOD_FAILURE",
+                            "421 DESTINATION_LOCKED",
+                            "422 UNPROCESSABLE_ENTITY",
+                            "423 LOCKED",
+                            "424 FAILED_DEPENDENCY",
+                            "425 TOO_EARLY",
+                            "426 UPGRADE_REQUIRED",
+                            "428 PRECONDITION_REQUIRED",
+                            "429 TOO_MANY_REQUESTS",
+                            "431 REQUEST_HEADER_FIELDS_TOO_LARGE",
+                            "451 UNAVAILABLE_FOR_LEGAL_REASONS",
+                            "500 INTERNAL_SERVER_ERROR",
+                            "501 NOT_IMPLEMENTED",
+                            "502 BAD_GATEWAY",
+                            "503 SERVICE_UNAVAILABLE",
+                            "504 GATEWAY_TIMEOUT",
+                            "505 HTTP_VERSION_NOT_SUPPORTED",
+                            "506 VARIANT_ALSO_NEGOTIATES",
+                            "507 INSUFFICIENT_STORAGE",
+                            "508 LOOP_DETECTED",
+                            "509 BANDWIDTH_LIMIT_EXCEEDED",
+                            "510 NOT_EXTENDED",
+                            "511 NETWORK_AUTHENTICATION_REQUIRED"
+                        ]
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "path": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ConsultaAlicuotaResponseDTO": {
+                "type": "object",
+                "properties": {
+                    "alicuota": {
+                        "type": "string"
+                    },
+                    "mensaje": {
+                        "type": "string"
+                    },
+                    "actividadAR": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "regimenAR": {
+                        "type": "string"
+                    },
+                    "fecha": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "hora": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
+            "ConsultaRegimenResponseDTO": {
+                "type": "object",
+                "properties": {
+                    "regimen": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ConsultaAlicuotaComprobanteResponseDTO": {
+                "type": "object",
+                "properties": {
+                    "nroConstancia": {
+                        "type": "string"
+                    },
+                    "cuitContribuyente": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "fechaEmision": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "regimenAR": {
+                        "type": "string"
+                    },
+                    "alicuota": {
+                        "type": "string"
+                    },
+                    "mensaje": {
+                        "type": "string"
+                    },
+                    "fechaVigenciaDesde": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "fechaVigenciaHasta": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "mensajePeriodo": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    }
+}
