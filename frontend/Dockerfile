@@ -33,3 +33,7 @@ COPY --from=builder /app/.next/static ./.next/static
 EXPOSE 3000
 ENV HOSTNAME=0.0.0.0 PORT=3000
 CMD ["node", "server.js"]
+
+FROM builder AS dev
+CMD ["npm", "run", "dev"]
+

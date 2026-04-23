@@ -5,12 +5,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: dev
       args:
         NEXT_PUBLIC_WINDMILL_URL: http://localhost
         NEXT_PUBLIC_AUTH_MODE: mock
-        NEXT_PUBLIC_WINDMILL_WORKSPACE: arba
+        NEXT_PUBLIC_WINDMILL_WORKSPACE: formulario
     ports:
-      - "3013:3000"
+      - "3014:3000"
     restart: unless-stopped
     # networks:
     #   - iibb-network
