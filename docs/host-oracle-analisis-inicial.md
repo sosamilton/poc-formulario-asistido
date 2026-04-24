@@ -2,7 +2,8 @@
 
 | Consulta Host | Rutina | Frecuencia en legacy | ¿Cambia? |
 |---|---|---|---|
-| **Actividades vigentes** | `IBWNACTC` | Cada vez que se inicia una DJ ([InicioDDJJAction](cci:2://file:///c:/Users/milton.sosa/sistemas/IBPresentaciones/IBPresentaciones/src/main/java/ar/gov/arba/ibpresentaciones/controller/InicioDDJJAction.java:45:0-733:1)) | **Sí** — bajas/altas de actividades |
+| **Actividades (por período)** | `IBWNACTC` | Cada vez que se inicia una DJ ([InicioDDJJAction](cci:2://file:///c:/Users/milton.sosa/sistemas/IBPresentaciones/IBPresentaciones/src/main/java/ar/gov/arba/ibpresentaciones/controller/InicioDDJJAction.java:45:0-733:1)) | **Sí** — bajas/altas de actividades |
+| *(Nota: `IBWNACTC` recibe `anio` + `periodo` como parámetros, por lo que el Host **puede** devolver la actividad histórica del período consultado)* | | | |
 | **Periodos exigibles / DJ existentes** | `IBWNPAD` / `IBWNPDD` | En búsqueda de DJ, cierre | **Sí** — a medida que pasan los meses |
 | **Deducciones (retenciones bancarias, SIRTAC)** | Host DFE | Solo en cierre ([CerrarDJAction](cci:2://file:///c:/Users/milton.sosa/sistemas/IBPresentaciones/IBPresentaciones/src/main/java/ar/gov/arba/ibpresentaciones/controller/CerrarDJAction.java:38:0-448:1)) | **Sí** — mensuales |
 | **Validación de inicio** (ingreso año ant.) | `IBWNPAD` | En inicio de DJ | **Sí** — depende de la DJ anterior |
@@ -30,9 +31,25 @@ Oracle: DJ #123456 → Actividad 741000 → Alicuota 3.5% → Monto $168.817
 Acá es donde tu hipótesis aplica mejor. Si el período `2025-10` (vencido) nunca se declaró:
 
 - **La actividad vigente HOY** podría diferir de la que había en octubre.
-- Ejemplo: el contribuyente tenía actividad `741000` en octubre, pero se dio de baja en noviembre. El Host hoy solo devolvería actividades vigentes, **no la historia**.
+- Ejemplo: el contribuyente tenía actividad `741000` en octubre, pero se dio de baja en noviembre.
 
-**Riesgo:** si cacheás "actividades vigentes" sin fecha de snapshot, podrías perder la actividad que tenía en el período vencido.
+**Investigación del código legacy:**
+La rutina `IBWNACTC` se invoca en `HostDAO.getActividadesDJ_HOST(dj, rol)` pasando explícitamente `anio` y `periodo` del objeto `Dj`:
+
+```java
+// HostDAO.java (~línea 197)
+datosEntrada.put("anio", new BigDecimal(dj.getPeriodoAño()));
+datosEntrada.put("periodo", new BigDecimal(dj.getPeriodoNro()));
+...
+Map resultados = ConnectionHostFacade.getInstance().ejecutar(Ibwnactc.class, ...);
+```
+
+Esto implica que **el Host recibe el período** y, dependiendo de la implementación de la rutina en Natural, **podría** devolver la actividad histórica de ese período en lugar de solo la vigente hoy. No es una caja negra total: la interfaz sí transporta el dato de período.
+
+**Riesgo:** si la rutina Natural internamente ignora `anio`/`periodo` y siempre consulta la situación actual del CUIT, entonces sí perderíamos la actividad histórica. Eso es una pregunta para el equipo de Host / DBA.
+
+**Si el Host sí respeta período:** el snapshot por período es redundante (el Host ya es el "snapshot"), pero cachear su respuesta sigue siendo útil para reducir latencia.  
+**Si el Host ignora período:** ahí sí es crítico cachear con `(CUIT, período)` como clave.
 
 ### Caso 3: Período NO presentado, EN VENTANA (vigente)
 
@@ -211,7 +228,12 @@ Tu segunda hipótesis: *"si cambia es solo para agregar, en ese caso me quedarí
 | Snapshot por período vencido | Medio-Alto | Medio | **No para v1.** Validar con dominio primero. |
 | Precarga masiva mensual | Alto | Alto a escala | **No para v1.** |
 
-**Pregunta clave para el experto de dominio:**
-> *"¿Un contribuyente que tiene actividad A en el período X, y luego se le da de baja la actividad A, puede/quiere presentar la DDJJ del período X con la actividad A (histórica) o solo con las vigentes?"*
+**Preguntas clave para validar con el equipo de Host / DBA:**
 
-Si la respuesta es *"con la vigente al momento de iniciar la DJ"*, entonces el snapshot por período es válido. Si es *"con la que tenía en ese período"*, entonces tu idea es aún más aplicable.
+> 1. *"La rutina `IBWNACTC` recibe `anio` y `periodo` en la interfaz. ¿Internamente usa esos parámetros para traer la actividad del contribuyente **en ese período**, o ignora el período y trae siempre la situación actual del CUIT?"*
+>
+> 2. *"¿Un contribuyente que tiene actividad A en el período X, y luego se le da de baja la actividad A, puede/quiere presentar la DDJJ del período X con la actividad A (histórica) o solo con las vigentes?"*
+
+- Si la respuesta a (1) es *"sí, respeta período"* → el Host ya actúa como "snapshot" implícito. El cache en Oracle es solo para reducir latencia, no para corregir comportamiento.
+- Si la respuesta a (1) es *"no, ignora período"* → entonces el snapshot por `(CUIT, período)` en Oracle **sí es necesario** para períodos vencidos no presentados.
+- La respuesta a (2) define si la actividad "histórica" tiene valor legal o si siempre se usa la vigente al momento de iniciar la DJ.

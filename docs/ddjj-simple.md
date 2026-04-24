@@ -14,11 +14,11 @@ Aplico tus respuestas y dejo explícito lo que queda para validar con expertos d
 | B10 | SAF período anterior | Se **muestra** en pantalla de confirmación. |
 | D14 | UX cierre | Sincrónico, UI esperando con loader. |
 | D15 | Idempotencia | Responsabilidad de legacy (`existeDJ(dj,"xPeriodo")` ya lo valida). Frontend bloquea doble-click. |
-| D16 | Errores de cierre | Queda PENDIENTE; tras 2-3 reintentos fallidos → borrar (`deleteDJPendiente`). Criterio exacto a revisar. |
-| E18 | Auth | Mismo JWT del SSO (Keycloak ARBA). Nueva app es "sub-app" de IBPresentaciones. |
-| E19 | `rolOpcionMenu` | Derivado del claim `permissions` del JWT. |
-| E20 | Windmill → IBPresentaciones | Reenvía el JWT del usuario final (no service-account). |
-| F21 | Auditoría | Nuevo subtipo `SUBTIPO_OPERACION_DDJJ_SIMPLE` en `GestionDTO`, mismo mecanismo que legacy. |
+| D16 | Errores de cierre | Legacy tiene dos modos: **sincronizado** (`cerrarDJEnOracleyHost`, una `@Transactional` con rollback si Host falla) y **2 transacciones** (`cerrarEn2Transacciones`, commit Oracle primero, luego Host). Recomendado para API: **modo sincronizado** con rollback automático de Spring. Si Host falla, Oracle se revierte. Compensación manual solo si se opta por commit anticipado. |
+| E18 | Auth | **Escenario A (mismo dominio/subdominio)**: cookie SSO ARBA fluye automáticamente. Sin JWT en backend. **Escenario B (dominio distinto)**: JWT del SSO Keycloak ARBA. Nueva app puede ser sub-app de IBPresentaciones o dominio separado. |
+| E19 | `rolOpcionMenu` | Fijo genérico `IBDDJJ_Presentacion` para llamadas a Host desde el nuevo servlet. No requiere mapeo dinámico desde JWT `permissions`; legacy `RolOpcionMenuFilter` lo obtiene de sesión por URL. |
+| E20 | Windmill → IBPresentaciones | **Escenario A (cookie compartida)**: no hay JWT que reenviar; la cookie fluye del browser al backend. **Escenario B (JWT)**: Windmill reenvía el JWT del usuario final (no service-account) o genera token intermedio. |
+| F21 | Auditoría | Nuevo subtipo `SUBTIPO_OPERACION_DDJJ_SIMPLE` en `GestionDTO` — **solo agregar constante Java**, no requiere seed/migración en base (campo numérico libre). |
 
 ## Contrato de datos confirmación (basado en tu mockup)
 
@@ -189,12 +189,15 @@ Los dejo priorizados y con formato "qué hay que responder → por qué importa 
 # Arquitectura de referencia
 
 ```
-┌────────────────┐      JWT       ┌──────────────┐
-│ Frontend Next  │ ─────────────► │   Windmill   │
-│ (nuevo)        │ ◄───────────── │   (flows)    │
-└────────────────┘   schema+data  └──────┬───────┘
-                                         │ JWT forward
-                                         ▼
+┌────────────────┐      JWT/Cookie    ┌──────────────┐
+│ Frontend Next  │ ─────────────────► │   Windmill   │
+│ (nuevo)        │ ◄───────────────── │   (flows)    │
+└────────────────┘   schema+data      └──────┬───────┘
+                                             │
+                    Escenario A (cookie):    │ cookie fluye
+                    browser ──────────────────►│ al backend
+                    Escenario B (JWT):         │ JWT forward
+                                               ▼
                               ┌──────────────────────┐
                               │ IBPresentaciones     │
                               │  /api/v1/*  (nuevo)  │
@@ -221,6 +224,8 @@ Los dejo priorizados y con formato "qué hay que responder → por qué importa 
                               └────────────────┘
 ```
 
+> **Nota auth**: Si frontend y backend comparten dominio (cookie SSO ARBA con `Domain=.arba.gov.ar`), no se requiere JWT ni JWKS. La sesión fluye vía cookie. Si son dominios distintos, se requiere JWT del SSO y validación en backend.
+
 ---
 
 # Contrato completo de endpoints
@@ -228,12 +233,12 @@ Los dejo priorizados y con formato "qué hay que responder → por qué importa 
 Resumen (detalle en `iibb/poc-formulario-asistido/apis/iibb-simple.json`).
 
 ## `GET /api/v1/contribuyente/me`
-- **Auth**: JWT obligatorio. CUIT se deriva del claim, **no** se recibe como parámetro.
+- **Auth**: Cookie SSO ARBA (Escenario A) o JWT (Escenario B). CUIT se deriva de la sesión/cookie o del claim `identifier`, **no** se recibe como parámetro.
 - **Response 200**: `{cuit, razonSocial, regimen, email?}`.
 - **Errores**: 401 JWT inválido, 403 sin permisos IIBB.
 
 ## `GET /api/v1/contribuyente/me/elegibilidad-ddjj-simple?ventanaMeses=3`
-- **Auth**: JWT.
+- **Auth**: Cookie SSO ARBA (Escenario A) o JWT (Escenario B).
 - **Query opcional**: `ventanaMeses` (default 3, max 12).
 - **Response 200**:
   ```jsonc
@@ -253,13 +258,13 @@ Resumen (detalle en `iibb/poc-formulario-asistido/apis/iibb-simple.json`).
   ```
 
 ## `POST /api/v1/ddjj-simple/preview`
-- **Auth**: JWT.
+- **Auth**: Cookie SSO ARBA (Escenario A) o JWT (Escenario B).
 - **Body**: `{periodo: "YYYY-MM", montoImponible: number}`.
 - **Response 200**: liquidación calculada (sin persistir). Ver mock para forma completa.
 - **Errores**: 422 monto inválido, 409 período ya presentado, 403 no elegible para ese período.
 
 ## `POST /api/v1/ddjj-simple/confirmar`
-- **Auth**: JWT.
+- **Auth**: Cookie SSO ARBA (Escenario A) o JWT (Escenario B).
 - **Body**: `{periodo, montoImponible, idempotencyKey}`.
 - **Response 201**: `{nroComprobante, estado:"CERRADA", pdfUrl, linkLegacy, impuestoPagado, fechaCierre, fechaVencimiento}`.
 - **Errores**:
