@@ -1,0 +1,6 @@
+name: form-iibb
+
+include:
+  - path: ./windmill/compose.yml
+  - path: ./frontend/compose.yml
+  - path: ./apis/compose.yml

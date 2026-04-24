@@ -1,3 +1,5 @@
+> **⚠️ NOTA**: Este documento es un **borrador arquitectónico inicial** (v0). El contrato de API actualizado basado en el OpenAPI real del servicio de alícuotas y los análisis de código legacy se encuentra en `../apis/contrato-ddjj-simple.md`. Las decisiones de arquitectura pendientes están en `preguntas-criticas-arquitectura.md`.
+
 # Análisis de Datos para Endpoint Escalable de DDJJ
 
 ## 1. Resumen Ejecutivo
