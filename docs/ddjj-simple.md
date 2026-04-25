@@ -352,7 +352,7 @@ Para que quien implemente el servlet sepa cómo construir el `Dj` al recibir el 
 - **Criterio done**: flow E2E funcional contra mock, incluyendo happy path + 3 escenarios de error.
 
 ## Fase 2 — Servlet REST en IBPresentaciones (solo lectura)
-- [ ] Agregar `DispatcherServlet` de Spring MVC mapeado a `/api/v1/*` en `web.xml` (ver decisión en `preguntas-por-stakeholder.md` → L3). **Cero dependencias nuevas** (`spring-webmvc` y Jackson ya están).
+- [ ] Agregar `DispatcherServlet` de Spring MVC mapeado a `/api/v1/*` en `web.xml` (ver decisión en `preguntas-generales-por-temas.md` → L3). **Cero dependencias nuevas** (`spring-webmvc` y Jackson ya están).
 - [ ] Crear `springRestContext.xml` con `<mvc:annotation-driven/>` y `<context:component-scan>` para el paquete `ar.gov.arba.ibpresentaciones.rest`.
 - [ ] Decidir coexistencia con `LoginFilter` existente (opción (a) excluir `/api/v1/*` + filtro JWT propio, o (b) reusar filter del weblib) — ver L12.
 - [ ] Implementar `@RestController` para `/me` y `/elegibilidad` inyectando `Facade`/`HostDAO` con `@Autowired`.

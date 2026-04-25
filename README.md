@@ -110,15 +110,18 @@ wmill sync push
 │   ├── app/
 │   ├── components/
 │   └── compose.yml
-├── apis/                    # Mocks Mockoon para desarrollo
+├── apis/                    # Mocks Mockoon + Contratos REST
 │   ├── compose.yml
+│   ├── contrato-ddjj-simple.md  # Contrato REST con ejemplos
 │   ├── iibb.json            # Mock API general
-│   └── iibb-simple.json     # Mock API DDJJ Simple
+│   ├── iibb-simple.json     # Mock API DDJJ Simple
+│   └── openapi-alicuota.json # OpenAPI del servicio real de alícuotas
 └── docs/                    # Análisis, decisiones y preguntas abiertas
     ├── README.md            # Índice de documentos
     ├── ddjj-simple.md       # Hoja de ruta y contrato de API
     ├── preguntas-criticas-arquitectura.md  # Preguntas que definen el diseño
-    └── preguntas-por-stakeholder.md       # Preguntas detalladas por área
+    ├── propuesta-flujo-elegibilidad.md     # Alternativas A/B/C para elegibilidad
+    └── preguntas-generales-por-temas.md    # Preguntas detalladas por área
 ```
 
 ---
@@ -128,6 +131,7 @@ wmill sync push
 - **[docs/README.md](docs/README.md)** — Índice de documentos y hallazgos del análisis legacy
 - **[docs/ddjj-simple.md](docs/ddjj-simple.md)** — Hoja de ruta, alcance v1, contrato de endpoints, riesgos
 - **[docs/preguntas-criticas-arquitectura.md](docs/preguntas-criticas-arquitectura.md)** — Decisiones arquitectónicas pendientes (ordenadas por impacto)
+- **[docs/propuesta-flujo-elegibilidad.md](docs/propuesta-flujo-elegibilidad.md)** — Análisis de Opción A/B/C para la puerta de elegibilidad
 - **[ARQUITECTURA.md](ARQUITECTURA.md)** — Diagrama y flujo de la solución
 - **[apis/contrato-ddjj-simple.md](apis/contrato-ddjj-simple.md)** — Contrato REST actualizado (OpenAPI)
 

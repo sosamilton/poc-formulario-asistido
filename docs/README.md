@@ -9,9 +9,10 @@ Este directorio contiene el análisis, decisiones y preguntas abiertas para el p
 | Documento | Propósito | Estado | Audiencia |
 |---|---|---|---|
 | `ddjj-simple.md` | **Hoja de ruta consolidada**. Decisiones tomadas, alcance v1 IN/OUT, contrato de endpoints, mapeo Frontend → `Dj` legacy, diagrama de arquitectura, riesgos y plan de fases. | ✅ Actualizado (post-análisis legacy) | Equipo completo |
-| `preguntas-por-stakeholder.md` | **Preguntas abiertas por área** (Negocio, Legacy, Seguridad, DBA, Infra, Frontend, Legales). Cada pregunta tiene respuestas verificadas por análisis de código legacy cuando aplica. | ✅ Actualizado con respuestas de análisis de código | Stakeholders y equipo técnico |
-| `preguntas-criticas-arquitectura.md` | **Preguntas cuyas respuestas definen la arquitectura**. Derivado de `preguntas-por-stakeholder.md`, solo incluye las que cambian el diseño o stack técnico. Ordenadas por impacto. | ✅ Creado (post-análisis legacy) | Arquitectos, PM, líderes técnicos |
+| `preguntas-generales-por-temas.md` | **Preguntas abiertas por área** (Negocio, Legacy, Seguridad, DBA, Infra, Frontend, Legales). Cada pregunta tiene respuestas verificadas por análisis de código legacy cuando aplica. | ✅ Actualizado con respuestas de análisis de código | Stakeholders y equipo técnico |
+| `preguntas-criticas-arquitectura.md` | **Preguntas cuyas respuestas definen la arquitectura**. Derivado de `preguntas-generales-por-temas.md`, solo incluye las que cambian el diseño o stack técnico. Ordenadas por impacto. | ✅ Creado (post-análisis legacy) | Arquitectos, PM, líderes técnicos |
 | `host-oracle-analisis-inicial.md` | **Análisis de llamadas Host ↔ Oracle**. Qué rutinas Natural (`IBWNACTC`, `IBWNPAD`, etc.) se invocan, qué devuelven, y qué se persiste en Oracle. | ✅ Verificado con código legacy | Devs backend |
+| `propuesta-flujo-elegibilidad.md` | **Análisis de alternativas para la puerta de elegibilidad**. Compara Opción A (`/elegibilidad` API dedicada), Opción B (redirect opaco), y Opción C (`/iniciar` híbrida, recomendada). Incluye contratos, pros/contras, y decisión pendiente. | ✅ Creado (análisis arquitectónico) | Arquitectos, PM |
 | `analisis-datos-endpoint-ddjj.md` | **Borrador arquitectónico inicial (v0)**. Contiene modelos A/B, endpoints hipotéticos, y diagramas de integración previos al análisis profundo de código. | ⚠️ Obsoleto — ver `../apis/contrato-ddjj-simple.md` y `preguntas-criticas-arquitectura.md` para decisiones actuales | Referencia histórica |
 
 ---
@@ -30,9 +31,10 @@ Este directorio contiene el análisis, decisiones y preguntas abiertas para el p
 
 1. **Para entender el alcance y decisiones**: leer `ddjj-simple.md` (sección "Decisiones tomadas" y "Alcance v1").
 2. **Para saber qué falta decidir**: leer `preguntas-criticas-arquitectura.md` y priorizar las preguntas 🔴.
-3. **Para ver respuestas verificadas de código legacy**: leer `preguntas-por-stakeholder.md` (buscar "✅ Respuesta").
-4. **Para entender integración Host/Oracle**: leer `host-oracle-analisis-inicial.md`.
-5. **Para implementar el contrato REST**: usar `../apis/contrato-ddjj-simple.md` + `../apis/iibb-simple.json` como mock.
+3. **Para analizar alternativas de flujo de elegibilidad**: leer `propuesta-flujo-elegibilidad.md` (Opción A/B/C con contratos y comparativa).
+4. **Para ver respuestas verificadas de código legacy**: leer `preguntas-generales-por-temas.md` (buscar "✅ Respuesta").
+5. **Para entender integración Host/Oracle**: leer `host-oracle-analisis-inicial.md`.
+6. **Para implementar el contrato REST**: usar `../apis/contrato-ddjj-simple.md` + `../apis/iibb-simple.json` como mock.
 
 ---
 

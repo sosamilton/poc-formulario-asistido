@@ -35,62 +35,216 @@ El foco es describir inputs/outputs, fuentes de datos y mecanismos de seguridad/
 
 ### 2.2 `GET /api/v1/contribuyente/me/elegibilidad-ddjj-simple`
 
-- **Uso**: Gatekeeper de la experiencia. Determina si se ofrece el formulario simplificado o se redirige al legacy.
+> **Nota arquitectónica**: este endpoint representa la **Opción A** (API de elegibilidad dedicada, donde el frontend decide el flujo). Existe una alternativa en análisis: **Opción C** (`POST /ddjj-simple/iniciar`, donde el backend decide y devuelve `{modo: SIMPLE|LEGACY}`). Ver comparativa completa en [`docs/propuesta-flujo-elegibilidad.md`](../docs/propuesta-flujo-elegibilidad.md) y pregunta **A7.1** en `docs/preguntas-criticas-arquitectura.md`.
+
+- **Uso**: Gatekeeper de la experiencia (Opción A). El frontend consulta y decide si muestra el formulario simplificado o redirige al legacy.
 - **Query opcional**: `scenario` (solo para mock/testing).
-- **Caso elegible (alícuota Host)** @apis/iibb-simple.json#101-155
-- **Caso elegible (alícuota servicio nuevo)** @apis/iibb-simple.json#185-209
-- **No elegible**: multiactividad @apis/iibb-simple.json#130-156, tratamiento fiscal @apis/iibb-simple.json#104-129, DJ pendiente legacy @apis/iibb-simple.json#76-102, deducciones manuales @apis/iibb-simple.json#103-129
+- **Autenticación**: JWT ARBA (`Authorization: Bearer <token>`). El CUIT se extrae del token; no va en la URL.
+
+#### Response 200 — Elegible (happy path)
+
+```json
+{
+  "elegible": true,
+  "motivoNoElegible": null,
+  "ventanaMeses": 3,
+  "actividadUnica": {
+    "codigo": "620100",
+    "descripcion": "Servicios profesionales",
+    "alicuotaVigente": 3.50,
+    "fuenteAlicuota": "ALICUOTAS_SERVICE",
+    "nroConstancia": "12345678",
+    "fechaVigenciaDesde": "2026-02-01",
+    "fechaVigenciaHasta": "2026-02-28",
+    "tipoHost": "G",
+    "codigoTratamientoFiscal": 0
+  },
+  "periodosPresentables": [
+    {
+      "periodo": "2026-02",
+      "periodoDisplay": "Febrero 2026",
+      "vencimiento": "2026-02-28",
+      "estado": "NO_PRESENTADA",
+      "esVencido": false
+    }
+  ],
+  "historialReciente": [
+    {
+      "periodo": "2025-12",
+      "periodoDisplay": "Diciembre 2025",
+      "estado": "PRESENTADA",
+      "nroComprobante": 987654,
+      "fechaCierre": "2026-01-10T14:22:00Z",
+      "montoDeclarado": 150000.00,
+      "impuestoPagado": 5250.00,
+      "canalOrigen": "LEGACY",
+      "linkLegacy": "/IBPresentaciones/verDJ.do?nroComprobante=987654"
+    }
+  ]
+}
+```
+
+#### Response 200 — No elegible: ejemplo genérico
+
+```json
+{
+  "elegible": false,
+  "motivoNoElegible": "MULTIPLES_ACTIVIDADES",
+  "mensajeUsuario": "Tu caso requiere la presentacion completa porque registras mas de una actividad en los ultimos 3 meses.",
+  "linkLegacy": "/IBPresentaciones/preInicioDDJJ.do",
+  "ventanaMeses": 3,
+  "actividadUnica": null,
+  "periodosPresentables": [],
+  "historialReciente": []
+}
+```
+
+Otros motivos posibles: `DJ_PENDIENTE_EXISTENTE`, `TRATAMIENTO_FISCAL_ESPECIAL`, `DEDUCCIONES_MANUALES`. Ver detalle en [`docs/propuesta-flujo-elegibilidad.md`](../docs/propuesta-flujo-elegibilidad.md).
 
 #### Campos clave
 
 | Campo | Descripción | Fuente |
 | --- | --- | --- |
 | `elegible` | Booleano principal | Reglas en backend legacy (actividades, deducciones, estados) |
+| `motivoNoElegible` | Código de rechazo (null si elegible) | Backend |
+| `mensajeUsuario` | Copy para pantalla de bloqueo | Backend |
 | `actividadUnica` | Actividad candidata, incluye `alicuotaVigente`, `fuenteAlicuota`, `ultimaActualizacion` | Host / nuevo servicio (ver sección 3) |
 | `periodosPresentables[]` | Períodos con estado `NO_PRESENTADA` o `PENDIENTE` + flag `esVencido` | Host (`IBWNPAD`) + Oracle |
 | `historialReciente[]` | Últimas DJ cerradas o pendientes, con `canalOrigen` y `linkLegacy` | Oracle (`Dj`) |
 | `alertaPeriodosFaltantes[]` | Períodos vencidos sin presentar, opcional `linkRegularizar` | Oracle + Host |
-| `traceId` | Identificador para trazabilidad cross-sistema | Generado por API (propagado a logs/Host) |
 | `linkLegacy` | URL Struts para fallback | Configuración legacy |
 
 ### 2.3 `POST /api/v1/ddjj-simple/preview`
 
 - **Uso**: Simular la liquidación sin persistir.
-- **Request**:
+- **Autenticación**: JWT ARBA (`Authorization: Bearer <token>`).
 
-  ```json
-  {
-    "periodo": "2026-02",
-    "montoImponible": 180000.00,
-    "idContexto": "f6f3b119-..."
-  }
-  ```
+#### Request
 
-- **Respuesta (mock)** @apis/iibb-simple.json#170-214
-- **Consideraciones**:
-  - `idContexto` asegura que el preview use las mismas actividades y deducciones cargadas durante la sesión.
-  - `fuenteAlicuota` y `traceId` se propagan para observabilidad.
-  - Deducciones/SAF se leen de Oracle/Host, no del request.
+```json
+{
+  "periodo": "2026-02",
+  "montoImponible": 180000.00,
+  "idContexto": "f6f3b119-4b8e-4b2f-9c3d-2a8e4f5d6c7b"
+}
+```
+
+#### Response 200 — Preview estándar
+
+```json
+{
+  "periodo": "2026-02",
+  "periodoDisplay": "Febrero 2026",
+  "idContexto": "f6f3b119-4b8e-4b2f-9c3d-2a8e4f5d6c7b",
+  "montoDeclarado": 180000.00,
+  "ingresoAnioAnterior": 163200.00,
+  "alicuota": 3.50,
+  "fuenteAlicuota": "ALICUOTAS_SERVICE",
+  "subtotalAPagar": 6304.50,
+  "descuentos": {
+    "creditoFiscalCopret": 1400.00,
+    "deducciones": 3000.00,
+    "saldoAFavor": 100.00,
+    "detalleDeducciones": [
+      {
+        "tipo": "RETENCION",
+        "agente": "Banco Provincia",
+        "importe": 1200.00,
+        "fecha": "2026-02-10"
+      },
+      {
+        "tipo": "PERCEPCION",
+        "agente": "Proveedor XYZ SA",
+        "importe": 1800.00,
+        "fecha": "2026-02-18"
+      }
+    ]
+  },
+  "impuestoAPagar": 5908.50,
+  "fechaVencimiento": "2026-02-28",
+  "traceId": "a1b2c3d4-e5f6-7890-abcd-ef1234567894"
+}
+```
+
+#### Response 422 — Monto inválido
+
+```json
+{
+  "error": "MONTO_INVALIDO",
+  "mensaje": "El monto imponible debe ser mayor o igual a 0."
+}
+```
+
+#### Consideraciones
+
+- `idContexto` asegura que el preview use las mismas actividades y deducciones cargadas durante la sesión.
+- `fuenteAlicuota` y `traceId` se propagan para observabilidad.
+- Deducciones/SAF se leen de Oracle/Host, no del request.
 
 ### 2.4 `POST /api/v1/ddjj-simple/confirmar`
 
 - **Uso**: Cierra la DJ simple (persiste en Oracle y Host).
-- **Request mínimo**:
+- **Autenticación**: JWT ARBA (`Authorization: Bearer <token>`).
 
-  ```json
-  {
-    "periodo": "2026-02",
-    "montoImponible": 180000.00,
-    "idContexto": "f6f3b119-...",
-    "idempotencyKey": "c09c7dd8-..."
-  }
-  ```
+#### Request
 
-- **Respuesta exitosa** @apis/iibb-simple.json#228-245
-- **Errores manejados**: DJ existente (`409`), Host no disponible (`502`).
-- **Notas**:
-  - `idempotencyKey` se valida contra Oracle.
-  - `fuenteAlicuota` y `traceId` permiten auditar la fuente de cálculo y correlacionar con Host.
+```json
+{
+  "periodo": "2026-02",
+  "montoImponible": 180000.00,
+  "idContexto": "f6f3b119-4b8e-4b2f-9c3d-2a8e4f5d6c7b",
+  "idempotencyKey": "c09c7dd8-e5f6-7890-abcd-ef1234567890"
+}
+```
+
+#### Response 201 — Cierre exitoso
+
+```json
+{
+  "nroComprobante": 123456789,
+  "estado": "CERRADA",
+  "periodo": "2026-02",
+  "montoDeclarado": 180000.00,
+  "impuestoPagado": 5908.50,
+  "fechaCierre": "2026-02-24T14:35:00Z",
+  "fechaVencimiento": "2026-02-28",
+  "fuenteAlicuota": "ALICUOTAS_SERVICE",
+  "nroConstancia": "12345678",
+  "pdfUrl": "/api/v1/ddjj-simple/123456789/comprobante.pdf",
+  "linkLegacy": "/IBPresentaciones/verDJ.do?nroComprobante=123456789",
+  "traceId": "a1b2c3d4-e5f6-7890-abcd-ef1234567895"
+}
+```
+
+#### Response 409 — DDJJ ya existente
+
+```json
+{
+  "error": "DDJJ_YA_EXISTENTE",
+  "mensaje": "Ya existe una DDJJ presentada para este periodo. Si queres rectificarla debes hacerlo desde la aplicacion completa.",
+  "nroComprobanteExistente": 987654,
+  "linkLegacy": "/IBPresentaciones/verDJ.do?nroComprobante=987654",
+  "traceId": "a1b2c3d4-e5f6-7890-abcd-ef1234567896"
+}
+```
+
+#### Response 502 — Host no disponible (queda pendiente)
+
+```json
+{
+  "error": "HOST_NO_DISPONIBLE",
+  "mensaje": "No se pudo impactar la presentacion en el host. La DDJJ quedo en estado PENDIENTE y se reintentara. Podes volver a intentar el cierre.",
+  "nroComprobantePendiente": 123456790,
+  "reintentable": true,
+  "traceId": "a1b2c3d4-e5f6-7890-abcd-ef1234567897"
+}
+```
+
+#### Notas
+
+- `idempotencyKey` se valida contra Oracle.
+- `fuenteAlicuota` y `traceId` permiten auditar la fuente de cálculo y correlacionar con Host.
+- `502` indica que Oracle quedó persistido pero el Host no respondió; la DJ queda en estado `PENDIENTE` con flag `reintentable`.
 
 ---
 
