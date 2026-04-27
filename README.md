@@ -36,7 +36,7 @@ Servicios disponibles tras `docker compose up -d`:
 
 | Servicio | URL | Descripción |
 |---|---|---|
-| Windmill UI | http://localhost:8000 | Orquestación, scripts, workflows |
+| Windmill UI | http://localhost | Orquestación, scripts, workflows |
 | Frontend | http://localhost:3014 | Formulario DDJJ (SurveyJS) |
 | Mock APIs | http://localhost:3001, http://localhost:3002 | Endpoints mock de IIBB |
 
@@ -48,7 +48,7 @@ Servicios disponibles tras `docker compose up -d`:
 
 ### 1. Crear workspace
 
-En Windmill UI (http://localhost:8000), crear workspace **`formularios`**.
+En Windmill UI (http://localhost), crear workspace **`formularios`**.
 
 ### 2. Configurar Data Tables
 
@@ -62,7 +62,7 @@ Ir a `Workspace Settings → Data Tables` y crear (apuntando a **Instance databa
 
 ```bash
 # Windmill expone PostgreSQL internamente
-docker compose exec -T windmill-db psql -U postgres -d datatable_db -f /dev/stdin < windmill-code/db/schema.sql
+docker compose exec -T db psql -U postgres -d datatable_db  < windmill-code/db/schema.sql 
 ```
 
 > Si el path no funciona, copiar `windmill-code/db/schema.sql` al contenedor o ejecutar con `psql` local apuntando al puerto expuesto de PostgreSQL.
@@ -77,7 +77,7 @@ nvm use 22
 wmill login
 
 # Agregar workspace (ejecutar una sola vez)
-wmill workspace add formularios http://localhost:8000
+wmill workspace add formularios http://localhost
 
 # Verificar workspace activo
 wmill workspace

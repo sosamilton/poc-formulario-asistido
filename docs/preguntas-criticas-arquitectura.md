@@ -20,10 +20,21 @@ Solo se incluyen las preguntas cuya respuesta **cambia el diseño o la arquitect
 - Si es **NO** (cookie específica por app) → Escenario B: se requiere JWT explícito, validación OIDC, y complejidad en frontend/backend.
 - **Quién responde**: equipo de seguridad ARBA / admins de Keycloak.
 
+**✅ Respuesta (análisis código IBPresentaciones / Gestionar):**
+- El flujo legacy **usa sesión SSO en servidor** y toma el usuario desde `ContextoLoginWeb` guardado en `HttpSession` bajo `CteClienteSSO.CONTEXTO_LOGIN`.
+- En `IBPresentaciones`, `SessionFilter` deja pasar el request, y si no hay `usuario` en sesión pero la URL es de servicios/compensaciones, llama a `Facade.getUsuarioLog()` para reconstruir el `UsuarioDTO` desde el contexto SSO.
+- **Implicancia práctica**: si la cookie SSO comparte dominio/path y llega al backend, no hace falta JWT para el flujo legacy. El problema no es el frontend en sí, sino **si la sesión/cookie del navegador viaja al WAR correcto**.
+- Para el nuevo frontend y Windmill, la decisión clave sigue siendo: **¿el acceso se hace bajo el mismo dominio y con cookie compartida, o habrá un origen distinto que obligue a token explícito?**
+
 ### 🔴 A2. ¿Dónde corre el frontend nuevo? ¿Mismo dominio que legacy o subdominio/apartado?
 - **Impacto**: Si el frontend corre en `ibpresentaciones.arba.gov.ar/simplificado` → cookie fluye, cero cambios de seguridad.
 - Si corre en `forms.arba.gov.ar` o Windmill → necesitamos saber si la cookie llega o si se usa JWT.
 - **Quién responde**: SRE / DevOps / equipo frontend.
+
+**✅ Respuesta (análisis código IBPresentaciones / Gestionar):**
+- Si el nuevo frontend vive bajo el **mismo dominio navegable por el browser** que IBPresentaciones, el modelo más simple es reutilizar la sesión/cookie y dejar que el backend arme el usuario desde SSO.
+- Si el frontend o Windmill quedan fuera del dominio o no pueden compartir la cookie, entonces el flujo necesita un **token explícito** (JWT/OIDC) o un backend intermedio que actúe como proxy con la identidad del usuario.
+- Para decidir bien, no alcanza con saber el dominio: también importa el **path de la cookie** y qué app queda detrás de cada contexto (`/IBPresentaciones`, `/Gestionar`, `/simplificado`, etc.).
 
 ### 🟡 A3. ¿IBPresentaciones corre sobre qué servidor de aplicaciones?
 - **Impacto**: WebLogic, Tomcat, JBoss, etc. Afecta cómo se deploya el segundo `DispatcherServlet` Spring MVC, hot-reload, y ciclo de deploy.
@@ -113,6 +124,7 @@ Las siguientes preguntas pueden ser críticas pero necesitan validación de impa
 | **A18. ¿El PDF del comprobante se genera en legacy o en el nuevo stack?** | Backend | Si legacy genera PDF, el API solo devuelve URL. Si nuevo stack genera, necesitamos motor de PDF (iText/PDFBox) y acceso a datos de DJ. |
 | **A19. ¿Los logs del nuevo API REST se centralizan en ELK/Graylog o se integran a `grabarGestion` legacy?** | Observabilidad | Define si necesitamos librerías de logging distribuido o si usamos el mecanismo existente (`ContextoOperacion`). |
 | **A20. ¿Se necesita cacheo de alícuotas o datos de actividad?** | Backend | Si el servicio de alícuotas es lento, podríamos necesitar Redis/ehcache. Impacta dependencias y configuración. |
+| **A21. ¿El nuevo flujo convive como una subruta dentro de IBPresentaciones o como una app separada que solo consume el mismo SSO?** | Arquitectura + Seguridad | Define si la convivencia se resuelve con cookie compartida y redirects internos, o con integración por JWT/proxy y CORS. |
 
 Estas preguntas se agregarán al documento solo si se confirma que impactan el diseño o stack.
 
